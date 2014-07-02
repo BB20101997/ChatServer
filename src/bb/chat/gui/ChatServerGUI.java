@@ -6,13 +6,16 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 
-import bb.chat.network.ConnectionListener;
+import bb.chat.interfaces.IMessageHandler;
+import bb.chat.network.MessageHandlerServer;
 
 /**
  * @author BB20101997
  */
 public class ChatServerGUI extends JFrame
 {
+
+	private IMessageHandler	IMHandler;
 
 	private class WindowLisen extends WindowAdapter
 	{
@@ -21,7 +24,7 @@ public class ChatServerGUI extends JFrame
 		{
 
 			super.windowClosing(e);
-			conLis.end();
+			((MessageHandlerServer) IMHandler).getConLis().end();
 			System.out.println("Disposing Window");
 			dispose();
 			System.exit(DISPOSE_ON_CLOSE);
@@ -30,21 +33,20 @@ public class ChatServerGUI extends JFrame
 
 	private static final long	serialVersionUID	= 1L;
 
-	ConnectionListener			conLis;
-
 	private BasicChatPanel		BCP					= new BasicChatPanel();
 
 	/**
 	 * @param netwListener
 	 *            the ConnectionListener to be linked to
 	 */
-	public ChatServerGUI(ConnectionListener netwListener)
+	public ChatServerGUI(IMessageHandler imh)
 	{
 
 		super("Server GUI");
-		conLis = netwListener;
+		IMHandler = imh;
+		imh.addBasicChatPanel(BCP);
 		addWindowListener(new WindowLisen());
-		BCP.addMessageHandler(netwListener.MH);
+		BCP.addMessageHandler(imh);
 		add(BCP);
 
 		setMinimumSize(new Dimension(500, 250));

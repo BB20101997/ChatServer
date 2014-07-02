@@ -1,78 +1,51 @@
 package bb.chat.network;
 
-import java.util.Arrays;
-import java.util.HashMap;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 import bb.chat.command.Disconnect;
 import bb.chat.command.Help;
-import bb.chat.command.Logout;
 import bb.chat.command.Rename;
 import bb.chat.command.Whisper;
-import bb.chat.gui.BasicChatPanel;
-import bb.chat.gui.ServerActor;
+import bb.chat.gui.ChatServerGUI;
 import bb.chat.interfaces.IChatActor;
-import bb.chat.interfaces.ICommand;
 import bb.chat.interfaces.IMessageHandler;
 
 /**
  * @author BB20101997
  */
-@SuppressWarnings("deprecation")
-public class MessageHandlerServer implements IMessageHandler
+public class MessageHandlerServer extends BasicMessageHandler implements IMessageHandler
 {
-
-	/**
-	 * Static Actor representing the Server
-	 */
-	public static final IChatActor		SA			= new ServerActor("Server");
-
 	/**
 	 * Static Actor representing the Server´s Helpfunction
 	 */
-	public static final IChatActor		HA			= new ServerActor("Help");
-
-	private ConnectionListener			conLis;
-
-	private HashMap<String, ICommand>	CommandMap	= new HashMap<String, ICommand>();
+	private ConnectionListener	conLis;
 
 	/**
 	 * @param CL
 	 *            a ConnectionListener to Manage the Connections Server-Side
 	 *            Also the Constructor adds the basic Commands
 	 */
-	public MessageHandlerServer(ConnectionListener CL)
+	public MessageHandlerServer(int port, boolean gui)
 	{
 
-		conLis = CL;
+		conLis = new ConnectionListener(port, this);
+		if(gui)
+		{
+			new ChatServerGUI(this).setVisible(true);;
+		}
+		new Thread(getConLis()).start();
+		println("Started server on port :" + port);
+		localActor = SERVER;
+		side = Side.SERVER;
 		addCommand(Help.class);
-		addCommand(Logout.class);
 		addCommand(Rename.class);
 		addCommand(Whisper.class);
 		addCommand(Disconnect.class);
-	}
-
-	@Override
-	public void addBasicChatPanel(BasicChatPanel BCP)
-	{
-
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addCommand(Class<? extends ICommand> c)
-	{
-
-		try
-		{
-			ICommand com = c.newInstance();
-			CommandMap.put(com.getName(), com);
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
-
 	}
 
 	@Override
@@ -86,191 +59,260 @@ public class MessageHandlerServer implements IMessageHandler
 	public void disconnect(IChatActor ica)
 	{
 
-		if(ica == null)
-		{
-			for(IOHandler cl : conLis.clientIOList)
-			{
-				cl.end();
-			}
-			return;
-		}
+		ica.disconnect();
 
-		if(ica instanceof IOHandler)
-		{
-			IOHandler CL = (IOHandler) ica;
-			CL.end();
-		}
-
-	}
-
-	@Override
-	public ICommand getCommand(String text)
-	{
-
-		String[] name = text.split(" ", 2);
-		if(CommandMap.containsKey(name[0].replace("/", ""))) { return CommandMap.get(name[0].replace("/", ""));
-
-		}
-		return null;
-	}
-
-	@Override
-	public void help(ICommand ic, IChatActor sender)
-	{
-
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void help(String s, IChatActor sender)
-	{
-
-		String[] help = CommandMap.get(s).helpCommand();
-		if(help != null)
-		{
-			for(int i = 0; i < help.length; i++)
-			{
-				if(!sender.equals("Server"))
-				{
-					conLis.send(help[i], HA, sender.getActorName());
-				}
-				else
-				{
-					if(conLis.chatServerGUI != null)
-					{
-						conLis.chatServerGUI.println(help[i]);
-					}
-				}
-			}
-
-		}
-		else
-		{}
-	}
-
-	@Override
-	public void help(String[] s, IChatActor sender)
-	{
-
-		Arrays.sort(s);
-		System.out.println(s.length);
-		for(int i = 0; i < s.length; i++)
-		{
-			System.out.println("Sending help");
-			help(s[i], sender);
-		}
-	}
-
-	@Override
-	public void helpAll(IChatActor s)
-	{
-
-		Object[] a = CommandMap.values().toArray();
-		System.out.println(a.length);
-		String[] names = new String[a.length];
-		for(int i = 0; i < a.length; i++)
-		{
-			try
-			{
-				names[i] = ((ICommand) a[i]).getName();
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
-		}
-		Arrays.sort(names);
-		help(names, s);
-	}
-
-	@Override
-	public void Message(String message, IChatActor sender)
-	{
-
-		System.out.println(message);
-		if(!message.startsWith("/") && !message.equals(""))
-		{
-			if(sender != null)
-			{
-				conLis.sendAll(sender.getActorName() + " : " + message, sender);
-				conLis.chatServerGUI.println(sender.getActorName() + " : " + message);
-			}
-			else
-			{
-				conLis.sendAll(message, getActor());
-			}
-		}
-		else
-		{
-			getCommand(message).runCommandServer(message, this, sender);
-
-		}
-	}
-
-	@Override
-	public void print(String s)
-	{
-
-		System.out.println(s);
-		/*
-		 * for(BasicChatPanel bcp:BCPList){ bcp.print(s); }
-		 */
-	}
-
-	@Override
-	public void println(String s)
-	{
-
-		System.out.println(s);
-		/*
-		 * for(BasicChatPanel bcp:BCPList){ bcp.println(s); }
-		 */
 	}
 
 	@Override
 	public void recieveMessage(String message, IChatActor sender)
 	{
 
-		System.out.println(message);
+		System.out.println("Recieved : " + message);
 		if(!message.startsWith("/") && !message.equals(""))
 		{
 			if(sender != null)
 			{
-				conLis.sendAll(sender.getActorName() + " : " + message, sender);
-				conLis.chatServerGUI.println(sender.getActorName() + " : " + message);
+				setEmpfaenger(ALL);
+				sendMessage(sender.getActorName() + " : " + message, sender);
+				println(sender.getActorName() + " : " + message);
+
 			}
 			else
 			{
-				conLis.sendAll(message, getActor());
+				setEmpfaenger(ALL);
+				sendMessage(getActor().getActorName() + " : " + message, getActor());
+				println("UNKOWN/SERVER" + " : " + message);
 			}
 		}
 		else
 		{
-			getCommand(message).runCommandRecievedFromClient(message, this, sender);
+			String[] strA = message.split(" ");
+			strA[0] = strA[0].replace("/", "");
+			getCommand(strA[0]).runCommandRecievedFromClient(message, this, sender);
 
 		}
 
 	}
 
 	@Override
-	public void sendMessage(String text, String Empf, IChatActor Send)
+	public void sendMessage(String text, IChatActor Send)
 	{
 
-		conLis.send(text, Send, Empf);
+		if(Target == ALL)
+		{
+			for(IChatActor ica : actors)
+			{
+				if(ica instanceof IOHandler)
+				{
+					IOHandler io = (IOHandler) ica;
+					io.getOut().println(text);
+					io.getOut().flush();
+				}
+			}
+		}
+		else
+		{
+			if(Target instanceof IOHandler)
+			{
+				IOHandler io = (IOHandler) Target;
+				io.getOut().println(text);
+				io.getOut().flush();
+			}
+		}
 	}
 
-	@Override
-	public void sendMessageAll(String text, IChatActor Send)
+	// Used by the Server Gui to stop Server on Window closing
+	public ConnectionListener getConLis()
 	{
 
-		conLis.sendAll(text, Send);
+		return conLis;
 	}
 
-	@Override
-	public IChatActor getActor()
+	public class ConnectionListener extends Thread
 	{
+		private final int	port;
+		private int			logins				= 0;
+		private boolean		continueLoop		= true;
+		List<Socket>		clientSocketList	= new ArrayList<Socket>();
+		List<Thread>		clientThreadList	= new ArrayList<Thread>();
+		IMessageHandler		MH;
 
-		return SA;
+		/**
+		 * new ConnectionListener using default port = 200
+		 */
+		public ConnectionListener(IMessageHandler m)
+		{
+
+			MH = m;
+			port = 256;
+		}
+
+		/**
+		 * @param p
+		 *            the Port the ConnectionListener will use
+		 */
+		public ConnectionListener(int p, IMessageHandler m)
+		{
+
+			MH = m;
+			port = p;
+		}
+
+		/**
+		 * Stop's the ConnectionListener
+		 */
+		public void end()
+		{
+
+			continueLoop = false;
+			interrupt();
+			System.out.println("Closing for new Connections");
+
+			Socket s = null;
+			try
+			{
+				s = new Socket("localhost", port);
+			}
+			catch(UnknownHostException e)
+			{
+				e.printStackTrace();
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+			}
+			finally
+			{
+				if(s != null)
+				{
+					try
+					{
+						s.close();
+					}
+					catch(IOException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			}
+
+			for(Socket cl : clientSocketList)
+			{
+				try
+				{
+					cl.close();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+
+			for(IChatActor ica : actors)
+			{
+
+				if(ica instanceof IOHandler)
+				{
+					IOHandler io = (IOHandler) ica;
+
+					try
+					{
+						io.finalize();
+					}
+					catch(Throwable e)
+					{
+						e.printStackTrace();
+					}
+
+				}
+
+				actors.remove(ica);
+			}
+		}
+
+		@Override
+		protected void finalize() throws Throwable
+		{
+
+			end();
+			super.finalize();
+		}
+
+		/**
+		 * the main Function called by the run Function ,it is listening for new
+		 * Connections
+		 */
+		public void listen()
+		{
+
+			ServerSocket socketS = null;
+			try
+			{
+				socketS = new ServerSocket(port);
+				while(continueLoop)
+				{
+					Socket s = socketS.accept();
+					if(!continueLoop)
+					{
+						s.close();
+						break;
+					}
+					logins++;
+					String n = "Anonym-User-" + logins;
+					IOHandler c = new IOHandler(s.getInputStream(), s.getOutputStream(), MH);
+					c.setActorName(n);
+					c.getOut().println("/rename " + " Client " + n);
+
+					clientSocketList.add(s);
+					actors.add(c);
+					clientThreadList.add(new Thread(c));
+
+					clientThreadList.get(clientThreadList.size() - 1).start();;
+
+					setEmpfaenger(ALL);
+					sendMessage(getActor().getActorName() + " : " + n + " joind the Server", getActor());
+					println(getActor().getActorName() + " : " + n + "joind the Server");
+					System.out.println("Connection astablished");
+				}
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+			}
+			for(IChatActor ica : actors)
+			{
+				if(ica instanceof IOHandler)
+				{
+					IOHandler cl = (IOHandler) ica;
+
+					try
+					{
+						cl.finalize();
+					}
+					catch(Throwable e)
+					{
+						e.printStackTrace();
+					};
+				}
+			}
+			actors.clear();
+
+		}
+
+		@Override
+		public void run()
+		{
+
+			if((port != -1) && (port >= 0) && (port <= 65535))
+			{
+				listen();
+			}
+		}
+
+		public IMessageHandler getMessageHandler()
+		{
+
+			return MH;
+		}
 	}
 }
