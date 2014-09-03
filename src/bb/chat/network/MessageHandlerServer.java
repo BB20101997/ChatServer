@@ -1,125 +1,104 @@
 package bb.chat.network;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-
-import bb.chat.command.Disconnect;
-import bb.chat.command.Help;
-import bb.chat.command.Rename;
-import bb.chat.command.Whisper;
+import bb.chat.command.*;
 import bb.chat.gui.ChatServerGUI;
 import bb.chat.interfaces.IChatActor;
 import bb.chat.interfaces.IMessageHandler;
+import bb.chat.interfaces.IPacket;
+import bb.chat.network.packet.Chatting.ChatPacket;
+import bb.chat.network.packet.Command.RenamePacket;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author BB20101997
  */
-public class MessageHandlerServer extends BasicMessageHandler implements IMessageHandler
+public class MessageHandlerServer extends BasicMessageHandler
 {
 	/**
-	 * Static Actor representing the Server´s Helpfunction
+	 * Static Actor representing the Serverï¿½s Help function
 	 */
-	private ConnectionListener	conLis;
+	private final ConnectionListener	conLis;
 
-	/**
-	 * @param CL
-	 *            a ConnectionListener to Manage the Connections Server-Side
-	 *            Also the Constructor adds the basic Commands
-	 */
 	public MessageHandlerServer(int port, boolean gui)
 	{
-
 		conLis = new ConnectionListener(port, this);
 		if(gui)
 		{
-			new ChatServerGUI(this).setVisible(true);;
+			new ChatServerGUI(this).setVisible(true);
 		}
 		new Thread(getConLis()).start();
-		println("Started server on port :" + port);
 		localActor = SERVER;
 		side = Side.SERVER;
 		addCommand(Help.class);
 		addCommand(Rename.class);
 		addCommand(Whisper.class);
 		addCommand(Disconnect.class);
+        addCommand(Stop.class);
 	}
 
 	@Override
 	public void connect(String host, int port)
 	{
 
-		// not used Server-Sided yet ,may in the futur
+		// not used Server-Sided yet ,may in the future
 	}
 
-	@Override
+    @Override
+    public void receivePackage(IPacket p, IChatActor sender) {
+        //TODO
+        if(p instanceof ChatPacket){
+            setEmpfaenger(ALL);
+            sendPackage(p);
+            println(sender.getActorName() + " : " + ((ChatPacket) p).message);
+        }
+    }
+
+    @Override
+    public void sendPackage(IPacket p) {
+        if(Target == ALL){
+            for(IChatActor ica: actors){
+                if(ica instanceof IOHandler){
+                    ((IOHandler) ica).sendPackage(p);
+                }
+            }
+        }
+        else{
+           if(Target instanceof IOHandler){
+               ((IOHandler) Target).sendPackage(p);
+           }
+        }
+    }
+
+    @Override
 	public void disconnect(IChatActor ica)
 	{
-
-		ica.disconnect();
-
+        if(ica != ALL) {
+            ica.disconnect();
+        }
+        else{
+               for(IChatActor a:actors){
+                   a.disconnect();
+                   actors.remove(a);
+               }
+        }
 	}
 
-	@Override
-	public void recieveMessage(String message, IChatActor sender)
-	{
-
-		System.out.println("Recieved : " + message);
-		if(!message.startsWith("/") && !message.equals(""))
-		{
-			if(sender != null)
-			{
-				setEmpfaenger(ALL);
-				sendMessage(sender.getActorName() + " : " + message, sender);
-				println(sender.getActorName() + " : " + message);
-
-			}
-			else
-			{
-				setEmpfaenger(ALL);
-				sendMessage(getActor().getActorName() + " : " + message, getActor());
-				println("UNKOWN/SERVER" + " : " + message);
-			}
-		}
-		else
-		{
-			String[] strA = message.split(" ");
-			strA[0] = strA[0].replace("/", "");
-			getCommand(strA[0]).runCommandRecievedFromClient(message, this, sender);
-
-		}
-
-	}
-
-	@Override
-	public void sendMessage(String text, IChatActor Send)
-	{
-
-		if(Target == ALL)
-		{
-			for(IChatActor ica : actors)
-			{
-				if(ica instanceof IOHandler)
-				{
-					IOHandler io = (IOHandler) ica;
-					io.getOut().println(text);
-					io.getOut().flush();
-				}
-			}
-		}
-		else
-		{
-			if(Target instanceof IOHandler)
-			{
-				IOHandler io = (IOHandler) Target;
-				io.getOut().println(text);
-				io.getOut().flush();
-			}
-		}
-	}
+    @Override
+    public void shutdown(){
+        super.shutdown();
+        conLis.end();
+    }
 
 	// Used by the Server Gui to stop Server on Window closing
 	public ConnectionListener getConLis()
@@ -133,12 +112,12 @@ public class MessageHandlerServer extends BasicMessageHandler implements IMessag
 		private final int	port;
 		private int			logins				= 0;
 		private boolean		continueLoop		= true;
-		List<Socket>		clientSocketList	= new ArrayList<Socket>();
-		List<Thread>		clientThreadList	= new ArrayList<Thread>();
-		IMessageHandler		MH;
+		final List<Socket>		clientSocketList	= new ArrayList<Socket>();
+		final List<Thread>		clientThreadList	= new ArrayList<Thread>();
+		final IMessageHandler		MH;
 
 		/**
-		 * new ConnectionListener using default port = 200
+		 * new ConnectionListener using default port = 256
 		 */
 		public ConnectionListener(IMessageHandler m)
 		{
@@ -159,7 +138,7 @@ public class MessageHandlerServer extends BasicMessageHandler implements IMessag
 		}
 
 		/**
-		 * Stop's the ConnectionListener
+		 * Stop the ConnectionListener
 		 */
 		public void end()
 		{
@@ -217,7 +196,7 @@ public class MessageHandlerServer extends BasicMessageHandler implements IMessag
 
 					try
 					{
-						io.finalize();
+						io.disconnect();
 					}
 					catch(Throwable e)
 					{
@@ -244,14 +223,25 @@ public class MessageHandlerServer extends BasicMessageHandler implements IMessag
 		 */
 		public void listen()
 		{
-
-			ServerSocket socketS = null;
 			try
 			{
-				socketS = new ServerSocket(port);
+
+
+                SSLContext sc = SSLContext.getInstance("TLS");
+                sc.init(null,null,null);
+
+                SSLServerSocketFactory ssf = sc.getServerSocketFactory();
+                SSLServerSocket socketS = (SSLServerSocket) ssf.createServerSocket(port);
+
+                bb.chat.util.Socket.enableAnonConnection(socketS);
+
+				if(MH != null)
+				{
+					MH.println("Awaiting connections on " + socketS.getLocalSocketAddress());
+				}
 				while(continueLoop)
 				{
-					Socket s = socketS.accept();
+                    SSLSocket s = (SSLSocket) socketS.accept();
 					if(!continueLoop)
 					{
 						s.close();
@@ -261,25 +251,29 @@ public class MessageHandlerServer extends BasicMessageHandler implements IMessag
 					String n = "Anonym-User-" + logins;
 					IOHandler c = new IOHandler(s.getInputStream(), s.getOutputStream(), MH);
 					c.setActorName(n);
-					c.getOut().println("/rename " + " Client " + n);
+                    c.sendPackage(new RenamePacket("Client", n));
 
 					clientSocketList.add(s);
 					actors.add(c);
 					clientThreadList.add(new Thread(c));
 
-					clientThreadList.get(clientThreadList.size() - 1).start();;
+					clientThreadList.get(clientThreadList.size() - 1).start();
 
 					setEmpfaenger(ALL);
-					sendMessage(getActor().getActorName() + " : " + n + " joind the Server", getActor());
-					println(getActor().getActorName() + " : " + n + "joind the Server");
-					System.out.println("Connection astablished");
+                    sendPackage(new ChatPacket(getActor().getActorName() + " : " + n + " joined the Server",getActor().getActorName()));
+					println(getActor().getActorName() + " : " + n + " joined the Server");
+					System.out.println("Connection established");
 				}
 			}
 			catch(IOException e)
 			{
 				e.printStackTrace();
-			}
-			for(IChatActor ica : actors)
+			} catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (KeyManagementException e) {
+                e.printStackTrace();
+            }
+            for(IChatActor ica : actors)
 			{
 				if(ica instanceof IOHandler)
 				{
@@ -287,12 +281,12 @@ public class MessageHandlerServer extends BasicMessageHandler implements IMessag
 
 					try
 					{
-						cl.finalize();
+						cl.disconnect();
 					}
 					catch(Throwable e)
 					{
 						e.printStackTrace();
-					};
+					}
 				}
 			}
 			actors.clear();

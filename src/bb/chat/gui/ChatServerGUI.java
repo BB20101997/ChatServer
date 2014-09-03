@@ -1,13 +1,12 @@
 package bb.chat.gui;
 
-import java.awt.Dimension;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
-import javax.swing.JFrame;
-
 import bb.chat.interfaces.IMessageHandler;
 import bb.chat.network.MessageHandlerServer;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * @author BB20101997
@@ -15,9 +14,9 @@ import bb.chat.network.MessageHandlerServer;
 public class ChatServerGUI extends JFrame
 {
 
-	private IMessageHandler	IMHandler;
+	private final IMessageHandler	IMHandler;
 
-	private class WindowLisen extends WindowAdapter
+	private class WindowListen extends WindowAdapter
 	{
 		@Override
 		public void windowClosing(WindowEvent e)
@@ -31,21 +30,15 @@ public class ChatServerGUI extends JFrame
 		}
 	}
 
-	private static final long	serialVersionUID	= 1L;
+	private final BasicChatPanel		BCP					= new BasicChatPanel();
 
-	private BasicChatPanel		BCP					= new BasicChatPanel();
-
-	/**
-	 * @param netwListener
-	 *            the ConnectionListener to be linked to
-	 */
 	public ChatServerGUI(IMessageHandler imh)
 	{
 
 		super("Server GUI");
 		IMHandler = imh;
 		imh.addBasicChatPanel(BCP);
-		addWindowListener(new WindowLisen());
+		addWindowListener(new WindowListen());
 		BCP.addMessageHandler(imh);
 		add(BCP);
 

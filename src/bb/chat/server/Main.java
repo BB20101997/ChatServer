@@ -6,12 +6,12 @@ import bb.chat.network.MessageHandlerServer;
 /**
  * @author BB20101997
  */
-public class Main
+class Main
 {
 
 	/**
 	 * @param tArgs
-	 *            just the usual tArgs to startup a java Programm
+	 *            just the usual tArgs to startup a java Program
 	 */
 	public static void main(String[] tArgs)
 	{
@@ -24,10 +24,16 @@ public class Main
 			try
 			{
 				port = Integer.valueOf(tArgs[0]);
+                if(port > 65535){
+                    throw new NumberFormatException();
+                }
 			}
 			catch(NumberFormatException e)
 			{
-
+               if(!gui) {
+                   System.err.println("Program Argument 1 was not a valid Port Number!");
+                   System.err.println("Using default Port 256");
+               }
 			}
 		}
 
@@ -35,7 +41,7 @@ public class Main
 		{
 			PortDialog p = new PortDialog();
 			p.setVisible(true);
-			while(!p.inputgotten)
+			while(!p.input_gotten)
 			{
 				// System.out.println("Loop");
 				try
