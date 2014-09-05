@@ -30,16 +30,16 @@ public class ChatServerGUI extends JFrame
 		}
 	}
 
-	private final BasicChatPanel		BCP					= new BasicChatPanel();
+	private final BasicChatPanel		BCP;
 
 	public ChatServerGUI(IMessageHandler imh)
 	{
 
 		super("Server GUI");
 		IMHandler = imh;
+		BCP = new BasicChatPanel(IMHandler);
 		imh.addBasicChatPanel(BCP);
 		addWindowListener(new WindowListen());
-		BCP.addMessageHandler(imh);
 		add(BCP);
 
 		setMinimumSize(new Dimension(500, 250));

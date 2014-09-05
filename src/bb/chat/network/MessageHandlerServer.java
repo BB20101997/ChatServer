@@ -2,9 +2,12 @@ package bb.chat.network;
 
 import bb.chat.command.*;
 import bb.chat.gui.ChatServerGUI;
-import bb.chat.interfaces.IChatActor;
+import bb.chat.interfaces.IIOHandler;
 import bb.chat.interfaces.IMessageHandler;
 import bb.chat.interfaces.IPacket;
+import bb.chat.network.handler.BasicMessageHandler;
+import bb.chat.network.handler.DefaultPacketHandler;
+import bb.chat.network.handler.IOHandler;
 import bb.chat.network.packet.Chatting.ChatPacket;
 import bb.chat.network.packet.Command.RenamePacket;
 
@@ -40,6 +43,10 @@ public class MessageHandlerServer extends BasicMessageHandler
 		new Thread(getConLis()).start();
 		localActor = SERVER;
 		side = Side.SERVER;
+
+
+		PD.registerPacketHandler(new DefaultPacketHandler(this));
+
 		addCommand(Help.class);
 		addCommand(Rename.class);
 		addCommand(Whisper.class);
@@ -55,7 +62,7 @@ public class MessageHandlerServer extends BasicMessageHandler
 	}
 
     @Override
-    public void receivePackage(IPacket p, IChatActor sender) {
+    public void receivePackage(IPacket p, IIOHandler sender) {
         //TODO
         if(p instanceof ChatPacket){
             setEmpfaenger(ALL);
@@ -67,28 +74,26 @@ public class MessageHandlerServer extends BasicMessageHandler
     @Override
     public void sendPackage(IPacket p) {
         if(Target == ALL){
-            for(IChatActor ica: actors){
-                if(ica instanceof IOHandler){
-                    ((IOHandler) ica).sendPackage(p);
-                }
+            for(IIOHandler ica: actors){
+                    ica.sendPacket(p);
             }
         }
         else{
            if(Target instanceof IOHandler){
-               ((IOHandler) Target).sendPackage(p);
+               Target.sendPacket(p);
            }
         }
     }
 
     @Override
-	public void disconnect(IChatActor ica)
+	public void disconnect(IIOHandler ica)
 	{
         if(ica != ALL) {
-            ica.disconnect();
+            ica.stop();
         }
         else{
-               for(IChatActor a:actors){
-                   a.disconnect();
+               for(IIOHandler a:actors){
+                   a.stop();
                    actors.remove(a);
                }
         }
@@ -187,7 +192,7 @@ public class MessageHandlerServer extends BasicMessageHandler
 				}
 			}
 
-			for(IChatActor ica : actors)
+			for(IIOHandler ica : actors)
 			{
 
 				if(ica instanceof IOHandler)
@@ -196,7 +201,7 @@ public class MessageHandlerServer extends BasicMessageHandler
 
 					try
 					{
-						io.disconnect();
+						io.stop();
 					}
 					catch(Throwable e)
 					{
@@ -251,7 +256,7 @@ public class MessageHandlerServer extends BasicMessageHandler
 					String n = "Anonym-User-" + logins;
 					IOHandler c = new IOHandler(s.getInputStream(), s.getOutputStream(), MH);
 					c.setActorName(n);
-                    c.sendPackage(new RenamePacket("Client", n));
+                    c.sendPacket(new RenamePacket("Client", n));
 
 					clientSocketList.add(s);
 					actors.add(c);
@@ -273,7 +278,7 @@ public class MessageHandlerServer extends BasicMessageHandler
             } catch (KeyManagementException e) {
                 e.printStackTrace();
             }
-            for(IChatActor ica : actors)
+            for(IIOHandler ica : actors)
 			{
 				if(ica instanceof IOHandler)
 				{
@@ -281,7 +286,7 @@ public class MessageHandlerServer extends BasicMessageHandler
 
 					try
 					{
-						cl.disconnect();
+						cl.stop();
 					}
 					catch(Throwable e)
 					{
