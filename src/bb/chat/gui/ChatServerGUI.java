@@ -21,7 +21,6 @@ public class ChatServerGUI extends JFrame
 		@Override
 		public void windowClosing(WindowEvent e)
 		{
-
 			super.windowClosing(e);
 			((MessageHandlerServer) IMHandler).getConLis().end();
 			System.out.println("Disposing Window");
@@ -46,25 +45,5 @@ public class ChatServerGUI extends JFrame
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		pack();
-	}
-
-	/**
-	 * @param s
-	 *            passed down to the print method of the BasicChatPanel
-	 */
-	public void print(String s)
-	{
-
-		BCP.print(s);
-	}
-
-	/**
-	 * @param s
-	 *            passed down to the println method of the BasicChatPanel
-	 */
-	public void println(String s)
-	{
-
-		BCP.println(s);
 	}
 }

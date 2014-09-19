@@ -1,6 +1,7 @@
 package bb.chat.network;
 
 import bb.chat.command.*;
+import bb.chat.enums.Side;
 import bb.chat.gui.ChatServerGUI;
 import bb.chat.interfaces.IIOHandler;
 import bb.chat.interfaces.IMessageHandler;
@@ -10,6 +11,9 @@ import bb.chat.network.handler.DefaultPacketHandler;
 import bb.chat.network.handler.IOHandler;
 import bb.chat.network.packet.Chatting.ChatPacket;
 import bb.chat.network.packet.Command.RenamePacket;
+import bb.chat.security.StringPermission;
+import bb.chat.security.StringUserPermissionGroup;
+import com.sun.istack.internal.NotNull;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
@@ -26,13 +30,14 @@ import java.util.List;
 /**
  * @author BB20101997
  */
-public class MessageHandlerServer extends BasicMessageHandler
+public class MessageHandlerServer extends BasicMessageHandler<String,StringPermission,StringUserPermissionGroup>
 {
 	/**
 	 * Static Actor representing the Server�s Help function
 	 */
 	private final ConnectionListener	conLis;
 
+	@SuppressWarnings("unchecked")
 	public MessageHandlerServer(int port, boolean gui)
 	{
 		conLis = new ConnectionListener(port, this);
@@ -62,16 +67,6 @@ public class MessageHandlerServer extends BasicMessageHandler
 	}
 
     @Override
-    public void receivePackage(IPacket p, IIOHandler sender) {
-        //TODO
-        if(p instanceof ChatPacket){
-            setEmpfaenger(ALL);
-            sendPackage(p);
-            println(sender.getActorName() + " : " + ((ChatPacket) p).message);
-        }
-    }
-
-    @Override
     public void sendPackage(IPacket p) {
         if(Target == ALL){
             for(IIOHandler ica: actors){
@@ -84,20 +79,6 @@ public class MessageHandlerServer extends BasicMessageHandler
            }
         }
     }
-
-    @Override
-	public void disconnect(IIOHandler ica)
-	{
-        if(ica != ALL) {
-            ica.stop();
-        }
-        else{
-               for(IIOHandler a:actors){
-                   a.stop();
-                   actors.remove(a);
-               }
-        }
-	}
 
     @Override
     public void shutdown(){
@@ -124,18 +105,18 @@ public class MessageHandlerServer extends BasicMessageHandler
 		/**
 		 * new ConnectionListener using default port = 256
 		 */
-		public ConnectionListener(IMessageHandler m)
+		public ConnectionListener(@NotNull IMessageHandler m)
 		{
-
 			MH = m;
 			port = 256;
+			assert m==null;
 		}
 
 		/**
 		 * @param p
 		 *            the Port the ConnectionListener will use
 		 */
-		public ConnectionListener(int p, IMessageHandler m)
+		public ConnectionListener(int p,@NotNull IMessageHandler m)
 		{
 
 			MH = m;
@@ -265,8 +246,9 @@ public class MessageHandlerServer extends BasicMessageHandler
 					clientThreadList.get(clientThreadList.size() - 1).start();
 
 					setEmpfaenger(ALL);
-                    sendPackage(new ChatPacket(getActor().getActorName() + " : " + n + " joined the Server",getActor().getActorName()));
-					println(getActor().getActorName() + " : " + n + " joined the Server");
+                    sendPackage(new ChatPacket(n + " joined the Server",getActor().getActorName()));
+					assert MH != null;
+					println("["+MH.getActor().getActorName()+"] "+ n + " joined the Server");
 					System.out.println("Connection established");
 				}
 			}

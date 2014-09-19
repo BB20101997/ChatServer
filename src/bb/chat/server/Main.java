@@ -43,14 +43,12 @@ class Main
 			p.setVisible(true);
 			while(!p.input_gotten)
 			{
-				// System.out.println("Loop");
 				try
 				{
 					Thread.sleep(5);
 				}
 				catch(InterruptedException e)
 				{
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
