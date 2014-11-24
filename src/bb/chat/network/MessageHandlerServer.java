@@ -12,6 +12,7 @@ import bb.chat.network.handler.IOHandler;
 import bb.chat.network.packet.Chatting.ChatPacket;
 import bb.chat.network.packet.Command.RenamePacket;
 import bb.chat.security.StringPermission;
+import bb.chat.security.StringPermissionRegistrie;
 import bb.chat.security.StringUserPermissionGroup;
 import com.sun.istack.internal.NotNull;
 
@@ -21,7 +22,6 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -30,94 +30,86 @@ import java.util.List;
 /**
  * @author BB20101997
  */
-public class MessageHandlerServer extends BasicMessageHandler<String,StringPermission,StringUserPermissionGroup>
-{
+public class MessageHandlerServer extends BasicMessageHandler<String, StringPermission, StringUserPermissionGroup> {
 	/**
 	 * Static Actor representing the Server�s Help function
 	 */
-	private final ConnectionListener	conLis;
+	private final ConnectionListener conLis;
 
 	@SuppressWarnings("unchecked")
-	public MessageHandlerServer(int port, boolean gui)
-	{
+	public MessageHandlerServer(int port, boolean gui) {
 		conLis = new ConnectionListener(port, this);
-		if(gui)
-		{
+		if(gui) {
 			new ChatServerGUI(this).setVisible(true);
 		}
 		new Thread(getConLis()).start();
 		localActor = SERVER;
 		side = Side.SERVER;
 
-
+		permReg = new StringPermissionRegistrie();
 		PD.registerPacketHandler(new DefaultPacketHandler(this));
 
 		addCommand(Help.class);
 		addCommand(Rename.class);
 		addCommand(Whisper.class);
 		addCommand(Disconnect.class);
-        addCommand(Stop.class);
+		addCommand(Stop.class);
+		addCommand(Save.class);
 	}
 
 	@Override
-	public void connect(String host, int port)
-	{
+	public void connect(String host, int port) {
 
 		// not used Server-Sided yet ,may in the future
 	}
 
-    @Override
-    public void sendPackage(IPacket p) {
-        if(Target == ALL){
-            for(IIOHandler ica: actors){
-                    ica.sendPacket(p);
-            }
-        }
-        else{
-           if(Target instanceof IOHandler){
-               Target.sendPacket(p);
-           }
-        }
-    }
+	@Override
+	public void sendPackage(IPacket p) {
+		if(Target == ALL) {
+			for(IIOHandler ica : actors) {
+				ica.sendPacket(p);
+			}
+		} else {
+			if(Target instanceof IOHandler) {
+				Target.sendPacket(p);
+			}
+		}
+	}
 
-    @Override
-    public void shutdown(){
-        super.shutdown();
-        conLis.end();
-    }
+	@Override
+	public void shutdown() {
+		conLis.end();
+		super.shutdown();
+		System.exit(1);
+	}
 
 	// Used by the Server Gui to stop Server on Window closing
-	public ConnectionListener getConLis()
-	{
+	public ConnectionListener getConLis() {
 
 		return conLis;
 	}
 
-	public class ConnectionListener extends Thread
-	{
-		private final int	port;
-		private int			logins				= 0;
-		private boolean		continueLoop		= true;
-		final List<Socket>		clientSocketList	= new ArrayList<Socket>();
-		final List<Thread>		clientThreadList	= new ArrayList<Thread>();
-		final IMessageHandler		MH;
+	public class ConnectionListener extends Thread {
+		private final int port;
+		private int          logins           = 0;
+		private boolean      continueLoop     = true;
+		final   List<Socket> clientSocketList = new ArrayList<>();
+		final   List<Thread> clientThreadList = new ArrayList<>();
+		final IMessageHandler MH;
 
 		/**
 		 * new ConnectionListener using default port = 256
 		 */
-		public ConnectionListener(@NotNull IMessageHandler m)
-		{
+		public ConnectionListener(@NotNull IMessageHandler m) {
 			MH = m;
 			port = 256;
-			assert m==null;
+			assert m == null;
 		}
 
 		/**
-		 * @param p
-		 *            the Port the ConnectionListener will use
+		 * @param p the Port the ConnectionListener will use
 		 */
-		public ConnectionListener(int p,@NotNull IMessageHandler m)
-		{
+		public ConnectionListener(int p, @NotNull IMessageHandler m) {
 
 			MH = m;
 			port = p;
@@ -126,66 +118,43 @@ public class MessageHandlerServer extends BasicMessageHandler<String,StringPermi
 		/**
 		 * Stop the ConnectionListener
 		 */
-		public void end()
-		{
+		public void end() {
 
 			continueLoop = false;
 			interrupt();
 			System.out.println("Closing for new Connections");
 
 			Socket s = null;
-			try
-			{
+			try {
 				s = new Socket("localhost", port);
-			}
-			catch(UnknownHostException e)
-			{
+			} catch(IOException e) {
 				e.printStackTrace();
-			}
-			catch(IOException e)
-			{
-				e.printStackTrace();
-			}
-			finally
-			{
-				if(s != null)
-				{
-					try
-					{
+			} finally {
+				if(s != null) {
+					try {
 						s.close();
-					}
-					catch(IOException e)
-					{
+					} catch(IOException e) {
 						e.printStackTrace();
 					}
 				}
 			}
 
-			for(Socket cl : clientSocketList)
-			{
-				try
-				{
+			for(Socket cl : clientSocketList) {
+				try {
 					cl.close();
-				}
-				catch(IOException e)
-				{
+				} catch(IOException e) {
 					e.printStackTrace();
 				}
 			}
 
-			for(IIOHandler ica : actors)
-			{
+			for(IIOHandler ica : actors) {
 
-				if(ica instanceof IOHandler)
-				{
+				if(ica instanceof IOHandler) {
 					IOHandler io = (IOHandler) ica;
 
-					try
-					{
+					try {
 						io.stop();
-					}
-					catch(Throwable e)
-					{
+					} catch(Throwable e) {
 						e.printStackTrace();
 					}
 
@@ -196,40 +165,34 @@ public class MessageHandlerServer extends BasicMessageHandler<String,StringPermi
 		}
 
 		@Override
-		protected void finalize() throws Throwable
-		{
+		protected void finalize() throws Throwable {
 
 			end();
 			super.finalize();
 		}
 
 		/**
-		 * the main Function called by the run Function ,it is listening for new
-		 * Connections
+		 * the main Function called by the run Function ,it is listening for new Connections
 		 */
-		public void listen()
-		{
-			try
-			{
+		@SuppressWarnings("unchecked")
+		public void listen() {
+			try {
 
 
-                SSLContext sc = SSLContext.getInstance("TLS");
-                sc.init(null,null,null);
+				SSLContext sc = SSLContext.getInstance("TLS");
+				sc.init(null, null, null);
 
-                SSLServerSocketFactory ssf = sc.getServerSocketFactory();
-                SSLServerSocket socketS = (SSLServerSocket) ssf.createServerSocket(port);
+				SSLServerSocketFactory ssf = sc.getServerSocketFactory();
+				SSLServerSocket socketS = (SSLServerSocket) ssf.createServerSocket(port);
 
-                bb.chat.util.Socket.enableAnonConnection(socketS);
+				bb.chat.util.Socket.enableAnonConnection(socketS);
 
-				if(MH != null)
-				{
+				if(MH != null) {
 					MH.println("Awaiting connections on " + socketS.getLocalSocketAddress());
 				}
-				while(continueLoop)
-				{
-                    SSLSocket s = (SSLSocket) socketS.accept();
-					if(!continueLoop)
-					{
+				while(continueLoop) {
+					SSLSocket s = (SSLSocket) socketS.accept();
+					if(!continueLoop) {
 						s.close();
 						break;
 					}
@@ -237,7 +200,7 @@ public class MessageHandlerServer extends BasicMessageHandler<String,StringPermi
 					String n = "Anonym-User-" + logins;
 					IOHandler c = new IOHandler(s.getInputStream(), s.getOutputStream(), MH);
 					c.setActorName(n);
-                    c.sendPacket(new RenamePacket("Client", n));
+					c.sendPacket(new RenamePacket("Client", n));
 
 					clientSocketList.add(s);
 					actors.add(c);
@@ -246,32 +209,21 @@ public class MessageHandlerServer extends BasicMessageHandler<String,StringPermi
 					clientThreadList.get(clientThreadList.size() - 1).start();
 
 					setEmpfaenger(ALL);
-                    sendPackage(new ChatPacket(n + " joined the Server",getActor().getActorName()));
+					sendPackage(new ChatPacket(n + " joined the Server", getActor().getActorName()));
 					assert MH != null;
-					println("["+MH.getActor().getActorName()+"] "+ n + " joined the Server");
+					println("[" + MH.getActor().getActorName() + "] " + n + " joined the Server");
 					System.out.println("Connection established");
 				}
-			}
-			catch(IOException e)
-			{
+			} catch(KeyManagementException | NoSuchAlgorithmException | IOException e) {
 				e.printStackTrace();
-			} catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (KeyManagementException e) {
-                e.printStackTrace();
-            }
-            for(IIOHandler ica : actors)
-			{
-				if(ica instanceof IOHandler)
-				{
+			}
+			for(IIOHandler ica : actors) {
+				if(ica instanceof IOHandler) {
 					IOHandler cl = (IOHandler) ica;
 
-					try
-					{
+					try {
 						cl.stop();
-					}
-					catch(Throwable e)
-					{
+					} catch(Throwable e) {
 						e.printStackTrace();
 					}
 				}
@@ -281,17 +233,14 @@ public class MessageHandlerServer extends BasicMessageHandler<String,StringPermi
 		}
 
 		@Override
-		public void run()
-		{
+		public void run() {
 
-			if((port != -1) && (port >= 0) && (port <= 65535))
-			{
+			if((port != -1) && (port >= 0) && (port <= 65535)) {
 				listen();
 			}
 		}
 
-		public IMessageHandler getMessageHandler()
-		{
+		public IMessageHandler getMessageHandler() {
 
 			return MH;
 		}

@@ -7,16 +7,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 @SuppressWarnings("serial")
-public class PortDialog extends JDialog implements ActionListener
-{
+public class PortDialog extends JDialog implements ActionListener {
 
-	public int		port		= 256;
+	public int     port         = 256;
 	public boolean input_gotten = false;
 
-	private final JTextField		InText		= new JTextField("256");
+	private final JTextField InText = new JTextField("256");
 
-	public PortDialog()
-	{
+	public PortDialog() {
 
 		Box b = new Box(BoxLayout.Y_AXIS);
 		JLabel lab = new JLabel("Enter a port \n or hit OK for the standard port 256!");
@@ -32,17 +30,13 @@ public class PortDialog extends JDialog implements ActionListener
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0)
-	{
+	public void actionPerformed(ActionEvent arg0) {
 
-		try
-		{
+		try {
 
 			port = Integer.valueOf(InText.getText());
 
-		}
-		catch(IllegalArgumentException e)
-		{
+		} catch(IllegalArgumentException e) {
 			System.err.println("Input was not an Integer!\nUsing standard port 256!");
 		}
 
@@ -50,11 +44,9 @@ public class PortDialog extends JDialog implements ActionListener
 		setVisible(false);
 	}
 
-	private class WinLis extends WindowAdapter
-	{
+	private class WinLis extends WindowAdapter {
 		@Override
-		public void windowClosed(WindowEvent arg0)
-		{
+		public void windowClosed(WindowEvent arg0) {
 
 			super.windowClosed(arg0);
 
@@ -62,8 +54,7 @@ public class PortDialog extends JDialog implements ActionListener
 		}
 
 		@Override
-		public void windowClosing(WindowEvent e)
-		{
+		public void windowClosing(WindowEvent e) {
 
 			input_gotten = true;
 			super.windowClosing(e);

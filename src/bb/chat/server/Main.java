@@ -6,58 +6,43 @@ import bb.chat.network.MessageHandlerServer;
 /**
  * @author BB20101997
  */
-class Main
-{
+class Main {
 
 	/**
-	 * @param tArgs
-	 *            just the usual tArgs to startup a java Program
+	 * @param tArgs just the usual tArgs to startup a java Program
 	 */
-	public static void main(String[] tArgs)
-	{
+	public static void main(String[] tArgs) {
 
 		boolean gui = !(((tArgs.length > 0) && tArgs[0].equals("nogui")) || ((tArgs.length > 1) && tArgs[1].equals("nogui")));
 
 		int port = 256;
-		if(tArgs.length >= 1)
-		{
-			try
-			{
+		if(tArgs.length >= 1) {
+			try {
 				port = Integer.valueOf(tArgs[0]);
-                if(port > 65535){
-                    throw new NumberFormatException();
-                }
-			}
-			catch(NumberFormatException e)
-			{
-               if(!gui) {
-                   System.err.println("Program Argument 1 was not a valid Port Number!");
-                   System.err.println("Using default Port 256");
-               }
+				if(port > 65535) {
+					throw new NumberFormatException();
+				}
+			} catch(NumberFormatException e) {
+				if(!gui) {
+					System.err.println("Program Argument 1 was not a valid Port Number!");
+					System.err.println("Using default Port 256");
+				}
 			}
 		}
 
-		if(gui)
-		{
+		if(gui) {
 			PortDialog p = new PortDialog();
 			p.setVisible(true);
-			while(!p.input_gotten)
-			{
-				try
-				{
+			while(!p.input_gotten) {
+				try {
 					Thread.sleep(5);
-				}
-				catch(InterruptedException e)
-				{
+				} catch(InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
 			port = p.port;
-		}
-		else
-		{
-			if(System.console() != null)
-			{
+		} else {
+			if(System.console() != null) {
 				port = Integer.valueOf(System.console().readLine());
 			}
 		}

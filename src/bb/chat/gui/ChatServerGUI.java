@@ -11,16 +11,13 @@ import java.awt.event.WindowEvent;
 /**
  * @author BB20101997
  */
-public class ChatServerGUI extends JFrame
-{
+public class ChatServerGUI extends JFrame {
 
-	private final IMessageHandler	IMHandler;
+	private final IMessageHandler IMHandler;
 
-	private class WindowListen extends WindowAdapter
-	{
+	private class WindowListen extends WindowAdapter {
 		@Override
-		public void windowClosing(WindowEvent e)
-		{
+		public void windowClosing(WindowEvent e) {
 			super.windowClosing(e);
 			((MessageHandlerServer) IMHandler).getConLis().end();
 			System.out.println("Disposing Window");
@@ -29,15 +26,12 @@ public class ChatServerGUI extends JFrame
 		}
 	}
 
-	private final BasicChatPanel		BCP;
-
-	public ChatServerGUI(IMessageHandler imh)
-	{
+	public ChatServerGUI(IMessageHandler imh) {
 
 		super("Server GUI");
 		IMHandler = imh;
-		BCP = new BasicChatPanel(IMHandler);
-		imh.addBasicChatPanel(BCP);
+		BasicChatPanel BCP = new BasicChatPanel(IMHandler);
+		imh.setBasicChatPanel(BCP);
 		addWindowListener(new WindowListen());
 		add(BCP);
 
