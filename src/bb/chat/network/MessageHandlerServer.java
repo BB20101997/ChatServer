@@ -11,9 +11,10 @@ import bb.chat.network.handler.DefaultPacketHandler;
 import bb.chat.network.handler.IOHandler;
 import bb.chat.network.packet.Chatting.ChatPacket;
 import bb.chat.network.packet.Command.RenamePacket;
-import bb.chat.security.StringPermission;
-import bb.chat.security.StringPermissionRegistrie;
-import bb.chat.security.StringUserPermissionGroup;
+import bb.chat.security.string.StringPermission;
+import bb.chat.security.string.StringPermissionRegistrie;
+import bb.chat.security.string.StringUserPermission;
+import bb.chat.security.string.StringUserPermissionGroup;
 import com.sun.istack.internal.NotNull;
 
 import javax.net.ssl.SSLContext;
@@ -30,7 +31,7 @@ import java.util.List;
 /**
  * @author BB20101997
  */
-public class MessageHandlerServer extends BasicMessageHandler<String, StringPermission, StringUserPermissionGroup> {
+public class MessageHandlerServer extends BasicMessageHandler<StringPermission,StringUserPermission, StringUserPermissionGroup> {
 	/**
 	 * Static Actor representing the Server�s Help function
 	 */
@@ -58,9 +59,8 @@ public class MessageHandlerServer extends BasicMessageHandler<String, StringPerm
 	}
 
 	@Override
-	public void connect(String host, int port) {
-
-		// not used Server-Sided yet ,may in the future
+	public boolean connect(String host, int port) {
+		return true;
 	}
 
 	@Override
@@ -240,9 +240,5 @@ public class MessageHandlerServer extends BasicMessageHandler<String, StringPerm
 			}
 		}
 
-		public IMessageHandler getMessageHandler() {
-
-			return MH;
-		}
 	}
 }
