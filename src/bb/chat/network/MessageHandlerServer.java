@@ -6,15 +6,12 @@ import bb.chat.gui.ChatServerGUI;
 import bb.chat.interfaces.IIOHandler;
 import bb.chat.interfaces.IMessageHandler;
 import bb.chat.interfaces.IPacket;
+import bb.chat.network.handler.BasicIOHandler;
 import bb.chat.network.handler.BasicMessageHandler;
 import bb.chat.network.handler.DefaultPacketHandler;
-import bb.chat.network.handler.IOHandler;
 import bb.chat.network.packet.Chatting.ChatPacket;
 import bb.chat.network.packet.Command.RenamePacket;
-import bb.chat.security.string.StringPermission;
-import bb.chat.security.string.StringPermissionRegistrie;
-import bb.chat.security.string.StringUserPermission;
-import bb.chat.security.string.StringUserPermissionGroup;
+import bb.chat.security.BasicPermissionRegistrie;
 import com.sun.istack.internal.NotNull;
 
 import javax.net.ssl.SSLContext;
@@ -31,7 +28,7 @@ import java.util.List;
 /**
  * @author BB20101997
  */
-public class MessageHandlerServer extends BasicMessageHandler<StringPermission,StringUserPermission, StringUserPermissionGroup> {
+public class MessageHandlerServer extends BasicMessageHandler {
 	/**
 	 * Static Actor representing the Server�s Help function
 	 */
@@ -47,7 +44,7 @@ public class MessageHandlerServer extends BasicMessageHandler<StringPermission,S
 		localActor = SERVER;
 		side = Side.SERVER;
 
-		permReg = new StringPermissionRegistrie();
+		permReg = new BasicPermissionRegistrie();
 		PD.registerPacketHandler(new DefaultPacketHandler(this));
 
 		addCommand(Help.class);
@@ -70,7 +67,7 @@ public class MessageHandlerServer extends BasicMessageHandler<StringPermission,S
 				ica.sendPacket(p);
 			}
 		} else {
-			if(Target instanceof IOHandler) {
+			if(Target instanceof BasicIOHandler) {
 				Target.sendPacket(p);
 			}
 		}
@@ -149,8 +146,8 @@ public class MessageHandlerServer extends BasicMessageHandler<StringPermission,S
 
 			for(IIOHandler ica : actors) {
 
-				if(ica instanceof IOHandler) {
-					IOHandler io = (IOHandler) ica;
+				if(ica instanceof BasicIOHandler) {
+					BasicIOHandler io = (BasicIOHandler) ica;
 
 					try {
 						io.stop();
@@ -198,7 +195,7 @@ public class MessageHandlerServer extends BasicMessageHandler<StringPermission,S
 					}
 					logins++;
 					String n = "Anonym-User-" + logins;
-					IOHandler c = new IOHandler(s.getInputStream(), s.getOutputStream(), MH);
+					BasicIOHandler c = new BasicIOHandler(s.getInputStream(), s.getOutputStream(), MH);
 					c.setActorName(n);
 					c.sendPacket(new RenamePacket("Client", n));
 
@@ -218,8 +215,8 @@ public class MessageHandlerServer extends BasicMessageHandler<StringPermission,S
 				e.printStackTrace();
 			}
 			for(IIOHandler ica : actors) {
-				if(ica instanceof IOHandler) {
-					IOHandler cl = (IOHandler) ica;
+				if(ica instanceof BasicIOHandler) {
+					BasicIOHandler cl = (BasicIOHandler) ica;
 
 					try {
 						cl.stop();
