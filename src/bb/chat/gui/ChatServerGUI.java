@@ -7,7 +7,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 /**
  * @author BB20101997
  */
@@ -22,7 +21,7 @@ public class ChatServerGUI extends JFrame {
 			((MessageHandlerServer) IMHandler).getConLis().end();
 			System.out.println("Disposing Window");
 			dispose();
-			System.exit(DISPOSE_ON_CLOSE);
+			System.exit(0);
 		}
 	}
 
