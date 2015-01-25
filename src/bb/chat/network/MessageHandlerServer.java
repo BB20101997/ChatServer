@@ -1,17 +1,20 @@
 package bb.chat.network;
 
 import bb.chat.command.*;
+import bb.chat.enums.ServerStatus;
 import bb.chat.enums.Side;
 import bb.chat.gui.ChatServerGUI;
 import bb.chat.interfaces.IIOHandler;
 import bb.chat.interfaces.IMessageHandler;
 import bb.chat.interfaces.IPacket;
+import bb.chat.interfaces.IServerMessageHandler;
 import bb.chat.network.handler.BasicIOHandler;
 import bb.chat.network.handler.BasicMessageHandler;
 import bb.chat.network.handler.DefaultPacketHandler;
 import bb.chat.network.packet.Chatting.ChatPacket;
 import bb.chat.network.packet.Command.RenamePacket;
 import bb.chat.security.BasicPermissionRegistrie;
+import bb.chat.security.BasicUserDatabase;
 import com.sun.istack.internal.NotNull;
 
 import javax.net.ssl.SSLContext;
@@ -28,7 +31,7 @@ import java.util.List;
 /**
  * @author BB20101997
  */
-public class MessageHandlerServer extends BasicMessageHandler {
+public class MessageHandlerServer extends BasicMessageHandler implements IServerMessageHandler<BasicUserDatabase,BasicPermissionRegistrie> {
 	/**
 	 * Static Actor representing the Server�s Help function
 	 */
@@ -36,6 +39,7 @@ public class MessageHandlerServer extends BasicMessageHandler {
 
 	@SuppressWarnings("unchecked")
 	public MessageHandlerServer(int port, boolean gui) {
+		super();
 		conLis = new ConnectionListener(port, this);
 		if(gui) {
 			new ChatServerGUI(this).setVisible(true);
@@ -43,9 +47,10 @@ public class MessageHandlerServer extends BasicMessageHandler {
 		new Thread(getConLis()).start();
 		localActor = SERVER;
 		side = Side.SERVER;
-
 		permReg = new BasicPermissionRegistrie();
 		PD.registerPacketHandler(new DefaultPacketHandler(this));
+
+		load();
 
 		addCommand(Help.class);
 		addCommand(Rename.class);
@@ -61,14 +66,18 @@ public class MessageHandlerServer extends BasicMessageHandler {
 	}
 
 	@Override
-	public void sendPackage(IPacket p) {
-		if(Target == ALL) {
+	public void sendPackage(IPacket p, IIOHandler target) {
+		//noinspection StatementWithEmptyBody
+		if(target == SERVER) {
+			//TODO
+		}
+		if(target == ALL) {
 			for(IIOHandler ica : actors) {
 				ica.sendPacket(p);
 			}
 		} else {
-			if(Target instanceof BasicIOHandler) {
-				Target.sendPacket(p);
+			if(target instanceof BasicIOHandler) {
+				target.sendPacket(p);
 			}
 		}
 	}
@@ -77,6 +86,7 @@ public class MessageHandlerServer extends BasicMessageHandler {
 	public void shutdown() {
 		conLis.end();
 		super.shutdown();
+		save();
 		System.exit(1);
 	}
 
@@ -84,6 +94,43 @@ public class MessageHandlerServer extends BasicMessageHandler {
 	public ConnectionListener getConLis() {
 
 		return conLis;
+	}
+
+	@Override
+	public String[] getActiveUserList() {
+		synchronized(actors){
+			String[] names = new String[actors.size()];
+			for(int i = 0;i<actors.size();i++){
+				names[i] = actors.get(i).getActorName();
+			}
+			return names;
+		}
+
+	}
+
+	@Override
+	public int getOnlineUsers() {
+		return actors.size();
+	}
+
+	@Override
+	public int getMaxUsers() {
+		return -1;
+	}
+
+	@Override
+	public String getServerName() {
+		return "Server";//TODO implement as option
+	}
+
+	@Override
+	public String getServerMessage() {
+		return "Server Message";//TODO implement as option
+	}
+
+	@Override
+	public ServerStatus getServerStatus() {
+		return ServerStatus.UNKNOWN;//TODO implement
 	}
 
 	public class ConnectionListener extends Thread {
@@ -175,7 +222,6 @@ public class MessageHandlerServer extends BasicMessageHandler {
 		public void listen() {
 			try {
 
-
 				SSLContext sc = SSLContext.getInstance("TLS");
 				sc.init(null, null, null);
 
@@ -186,54 +232,56 @@ public class MessageHandlerServer extends BasicMessageHandler {
 
 				if(MH != null) {
 					MH.println("Awaiting connections on " + socketS.getLocalSocketAddress());
-				}
-				while(continueLoop) {
-					SSLSocket s = (SSLSocket) socketS.accept();
-					if(!continueLoop) {
-						s.close();
-						break;
+
+					while(continueLoop) {
+						SSLSocket s = (SSLSocket) socketS.accept();
+						if(!continueLoop) {
+							s.close();
+							break;
+						}
+						logins++;
+						String n = "User#" + logins;
+						BasicIOHandler c = new BasicIOHandler(s.getInputStream(), s.getOutputStream(), MH);
+						c.setActorName(n);
+						c.sendPacket(new RenamePacket("Client", n));
+
+						clientSocketList.add(s);
+						actors.add(c);
+						clientThreadList.add(new Thread(c));
+
+						clientThreadList.get(clientThreadList.size() - 1).start();
+
+						sendPackage(new ChatPacket(n + " joined the Server", getActor().getActorName()), ALL);
+						println("[" + MH.getActor().getActorName() + "] " + n + " joined the Server");
+						System.out.println("Connection established");
 					}
-					logins++;
-					String n = "Anonym-User-" + logins;
-					BasicIOHandler c = new BasicIOHandler(s.getInputStream(), s.getOutputStream(), MH);
-					c.setActorName(n);
-					c.sendPacket(new RenamePacket("Client", n));
+					for(IIOHandler ica : actors) {
+						if(ica instanceof BasicIOHandler) {
+							BasicIOHandler cl = (BasicIOHandler) ica;
 
-					clientSocketList.add(s);
-					actors.add(c);
-					clientThreadList.add(new Thread(c));
-
-					clientThreadList.get(clientThreadList.size() - 1).start();
-
-					setEmpfaenger(ALL);
-					sendPackage(new ChatPacket(n + " joined the Server", getActor().getActorName()));
-					assert MH != null;
-					println("[" + MH.getActor().getActorName() + "] " + n + " joined the Server");
-					System.out.println("Connection established");
+							try {
+								cl.stop();
+							} catch(Throwable e) {
+								e.printStackTrace();
+							}
+						}
+					}
+					actors.clear();
 				}
 			} catch(KeyManagementException | NoSuchAlgorithmException | IOException e) {
 				e.printStackTrace();
 			}
-			for(IIOHandler ica : actors) {
-				if(ica instanceof BasicIOHandler) {
-					BasicIOHandler cl = (BasicIOHandler) ica;
-
-					try {
-						cl.stop();
-					} catch(Throwable e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			actors.clear();
 
 		}
 
 		@Override
 		public void run() {
 
-			if((port != -1) && (port >= 0) && (port <= 65535)) {
+			if((port >= 0) && (port <= 65535)) {
 				listen();
+			}
+			else{
+				throw new RuntimeException("Port not in Range[0-65535]");
 			}
 		}
 
