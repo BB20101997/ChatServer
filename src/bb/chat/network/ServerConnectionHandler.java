@@ -6,10 +6,10 @@ import bb.chat.enums.ServerStatus;
 import bb.chat.enums.Side;
 import bb.chat.gui.ChatServerGUI;
 import bb.chat.interfaces.IIOHandler;
-import bb.chat.interfaces.IMessageHandler;
+import bb.chat.interfaces.IConnectionHandler;
 import bb.chat.interfaces.IPacket;
 import bb.chat.network.handler.BasicIOHandler;
-import bb.chat.network.handler.BasicMessageHandler;
+import bb.chat.network.handler.BasicConnectionHandler;
 import bb.chat.network.handler.DefaultPacketHandler;
 import bb.chat.network.packet.Command.DisconnectPacket;
 import bb.chat.network.packet.Command.RenamePacket;
@@ -30,14 +30,14 @@ import java.util.List;
 /**
  * @author BB20101997
  */
-public class MessageHandlerServer extends BasicMessageHandler {
+public class ServerConnectionHandler extends BasicConnectionHandler {
 	/**
 	 * Static Actor representing the Server�s Help function
 	 */
 	private final ConnectionListener conLis;
 
 	@SuppressWarnings("unchecked")
-	public MessageHandlerServer(int port, boolean gui) {
+	public ServerConnectionHandler(int port, boolean gui) {
 		super();
 		conLis = new ConnectionListener(port, this);
 		if(gui) {
@@ -117,12 +117,12 @@ public class MessageHandlerServer extends BasicMessageHandler {
 		private int          logins           = 0;
 		private boolean      continueLoop     = true;
 		final   List<Socket> clientSocketList = new ArrayList<>();
-		final IMessageHandler MH;
+		final IConnectionHandler MH;
 
 		/**
 		 * new ConnectionListener using default port = 256
 		 */
-		public ConnectionListener(@NotNull IMessageHandler m) {
+		public ConnectionListener(@NotNull IConnectionHandler m) {
 			MH = m;
 			port = 256;
 			assert m == null;
@@ -131,7 +131,7 @@ public class MessageHandlerServer extends BasicMessageHandler {
 		/**
 		 * @param p the Port the ConnectionListener will use
 		 */
-		public ConnectionListener(int p, @NotNull IMessageHandler m) {
+		public ConnectionListener(int p, @NotNull IConnectionHandler m) {
 
 			MH = m;
 			port = p;
@@ -218,7 +218,7 @@ public class MessageHandlerServer extends BasicMessageHandler {
 						updateUserCount();
 					}
 					serverStatus = ServerStatus.SHUTDOWN;
-					sendPackage(new DisconnectPacket(),ALL);
+					sendPackage(new DisconnectPacket(), ALL);
 					for(IIOHandler ica : actors) {
 						try {
 							ica.stop();
