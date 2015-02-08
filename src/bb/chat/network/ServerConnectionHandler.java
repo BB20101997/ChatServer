@@ -4,16 +4,14 @@ import bb.chat.command.*;
 import bb.chat.enums.NetworkState;
 import bb.chat.enums.ServerStatus;
 import bb.chat.enums.Side;
-import bb.chat.gui.ChatServerGUI;
-import bb.chat.interfaces.IIOHandler;
 import bb.chat.interfaces.IConnectionHandler;
-import bb.chat.interfaces.IPacket;
-import bb.chat.network.handler.BasicIOHandler;
+import bb.chat.interfaces.IIOHandler;
+import bb.chat.interfaces.APacket;
 import bb.chat.network.handler.BasicConnectionHandler;
+import bb.chat.network.handler.BasicIOHandler;
 import bb.chat.network.handler.DefaultPacketHandler;
 import bb.chat.network.packet.Command.DisconnectPacket;
 import bb.chat.network.packet.Command.RenamePacket;
-import bb.chat.security.BasicPermissionRegistrie;
 import com.sun.istack.internal.NotNull;
 
 import javax.net.ssl.SSLContext;
@@ -34,30 +32,34 @@ public class ServerConnectionHandler extends BasicConnectionHandler {
 	/**
 	 * Static Actor representing the Server�s Help function
 	 */
-	private final ConnectionListener conLis;
+	private ConnectionListener conLis;
+	private int localPort;
 
-	@SuppressWarnings("unchecked")
 	public ServerConnectionHandler(int port, boolean gui) {
 		super();
-		conLis = new ConnectionListener(port, this);
-		if(gui) {
-			new ChatServerGUI(this).setVisible(true);
-		}
-		new Thread(getConLis()).start();
+
+		serverStatus = ServerStatus.NOT_STARTED;
+
+		localPort = port;
 		localActor = SERVER;
 		side = Side.SERVER;
-		permReg = new BasicPermissionRegistrie();
-		PD.registerPacketHandler(new DefaultPacketHandler(this));
+	}
 
-		load();
-		addCommand(Help.class);
-		addCommand(Rename.class);
-		addCommand(Whisper.class);
-		addCommand(Disconnect.class);
-		addCommand(Stop.class);
-		addCommand(Save.class);
-
+	@SuppressWarnings("unchecked")
+	@Override
+	public void initiate(){
+		serverStatus = ServerStatus.STARTING;
+		conLis = new ConnectionListener(localPort,this);
+		new Thread(conLis).start();
+		getIChatInstance().getPacketDistributor().registerPacketHandler(new DefaultPacketHandler(this));
 		serverStatus = ServerStatus.EMPTY;
+
+		getIChatInstance().getCommandRegestry().addCommand(Help.class);
+		getIChatInstance().getCommandRegestry().addCommand(Rename.class);
+		getIChatInstance().getCommandRegestry().addCommand(Whisper.class);
+		getIChatInstance().getCommandRegestry().addCommand(Disconnect.class);
+		getIChatInstance().getCommandRegestry().addCommand(Stop.class);
+		getIChatInstance().getCommandRegestry().addCommand(Save.class);
 	}
 
 	@Override
@@ -66,7 +68,7 @@ public class ServerConnectionHandler extends BasicConnectionHandler {
 	}
 
 	@Override
-	public void sendPackage(IPacket p, IIOHandler target) {
+	public void sendPackage(APacket p, IIOHandler target) {
 		//noinspection StatementWithEmptyBody
 		if(target == SERVER) {
 			//TODO
@@ -86,30 +88,13 @@ public class ServerConnectionHandler extends BasicConnectionHandler {
 	public void shutdown() {
 		conLis.end();
 		super.shutdown();
-		save();
+		getIChatInstance().save();
 		System.exit(1);
 	}
 
 	// Used by the Server Gui to stop Server on Window closing
 	public ConnectionListener getConLis() {
-
 		return conLis;
-	}
-
-	@Override
-	public String[] getActiveUserList() {
-		synchronized(actors) {
-			int s = actors.size();
-			if(s > 0 && s < maxOnlineUser) {
-				serverStatus = ServerStatus.READY;
-			}
-			String[] names = new String[s];
-			for(int i = 0; i < s; i++) {
-				names[i] = actors.get(i).getActorName();
-			}
-			return names;
-		}
-
 	}
 
 	public class ConnectionListener extends Thread {
@@ -120,19 +105,9 @@ public class ServerConnectionHandler extends BasicConnectionHandler {
 		final IConnectionHandler MH;
 
 		/**
-		 * new ConnectionListener using default port = 256
-		 */
-		public ConnectionListener(@NotNull IConnectionHandler m) {
-			MH = m;
-			port = 256;
-			assert m == null;
-		}
-
-		/**
 		 * @param p the Port the ConnectionListener will use
 		 */
 		public ConnectionListener(int p, @NotNull IConnectionHandler m) {
-
 			MH = m;
 			port = p;
 		}

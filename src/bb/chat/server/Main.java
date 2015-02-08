@@ -1,7 +1,8 @@
 package bb.chat.server;
 
+import bb.chat.gui.ChatServerGUI;
 import bb.chat.gui.PortDialog;
-import bb.chat.network.MessageHandlerServer;
+import bb.chat.network.ServerConnectionHandler;
 
 /**
  * @author BB20101997
@@ -48,8 +49,6 @@ class Main {
 		}
 
 		port = port > 65565 ? 65565 : port;
-
-		new MessageHandlerServer(port, gui);
-
+		new ChatServerGUI(new ServerConnectionHandler(port,true));
 	}
 }
