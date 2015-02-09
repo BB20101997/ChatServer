@@ -1,7 +1,12 @@
 package bb.chat.gui;
 
-import bb.chat.interfaces.IMessageHandler;
-import bb.chat.network.MessageHandlerServer;
+import bb.chat.command.BasicCommandRegistry;
+import bb.chat.main.BasicChat;
+import bb.chat.network.ServerConnectionHandler;
+import bb.chat.network.packet.PacketDistributor;
+import bb.chat.network.packet.PacketRegistrie;
+import bb.chat.security.BasicPermissionRegistrie;
+import bb.chat.security.BasicUserDatabase;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,25 +17,26 @@ import java.awt.event.WindowEvent;
  */
 public class ChatServerGUI extends JFrame {
 
-	private final IMessageHandler IMHandler;
+	BasicChat bc;
 
 	private class WindowListen extends WindowAdapter {
 		@Override
 		public void windowClosing(WindowEvent e) {
 			super.windowClosing(e);
-			((MessageHandlerServer) IMHandler).getConLis().end();
+			bc.shutdown();
 			System.out.println("Disposing Window");
 			dispose();
 			System.exit(0);
 		}
 	}
 
-	public ChatServerGUI(IMessageHandler imh) {
+	public ChatServerGUI(int port) {
 
 		super("Server GUI");
-		IMHandler = imh;
-		BasicChatPanel BCP = new BasicChatPanel(IMHandler);
-		imh.setBasicChatPanel(BCP);
+		ServerConnectionHandler sch;
+		bc = new BasicChat(sch = new ServerConnectionHandler(port),new PacketRegistrie(),new BasicPermissionRegistrie(),new PacketDistributor(sch),new BasicUserDatabase(),new BasicCommandRegistry());
+		BasicChatPanel BCP = new BasicChatPanel(sch);
+		bc.setBasicChatPanel(BCP);
 		addWindowListener(new WindowListen());
 		add(BCP);
 
