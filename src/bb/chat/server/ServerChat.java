@@ -24,11 +24,14 @@ public class ServerChat extends BasicChat {
 		super(imessagehandler, bpr, bud, icr);
 
 		icr.addCommand(Help.class);
+		icr.addCommand(bb.chat.command.List.class);
+		icr.addCommand(Register.class);
 		icr.addCommand(Rename.class);
 		icr.addCommand(Whisper.class);
 		icr.addCommand(Disconnect.class);
 		icr.addCommand(Stop.class);
 		icr.addCommand(Save.class);
+		icr.addCommand(Permission.class);
 
 		imessagehandler.getPacketDistributor().registerPacketHandler(new DefaultPacketHandler(this));
 
