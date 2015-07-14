@@ -22,7 +22,7 @@ import java.awt.event.WindowEvent;
  */
 public class ChatServerGUI extends JFrame {
 
-	BasicChat basicChat;
+	BasicChat bc;
 
 	private class WindowListen extends WindowAdapter {
 		@Override
@@ -35,7 +35,7 @@ public class ChatServerGUI extends JFrame {
 		}
 	}
 
-	public ChatServerGUI(IConnectionHandler imh) {
+	public ChatServerGUI(int port) {
 
 		super("Server GUI");
 		BasicConnectionManager sch;
