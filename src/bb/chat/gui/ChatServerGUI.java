@@ -2,10 +2,6 @@ package bb.chat.gui;
 
 import bb.chat.chat.BasicChat;
 import bb.chat.command.BasicCommandRegistry;
-import bb.chat.interfaces.IConnectionHandler;
-import bb.chat.main.BasicChat;
-import bb.chat.network.packet.PacketDistributor;
-import bb.chat.network.packet.PacketRegistrie;
 import bb.chat.security.BasicPermissionRegistrie;
 import bb.chat.security.BasicUserDatabase;
 import bb.chat.server.ServerChat;
@@ -28,7 +24,7 @@ public class ChatServerGUI extends JFrame {
 		@Override
 		public void windowClosing(WindowEvent e) {
 			super.windowClosing(e);
-			basicChat.shutdown();
+			bc.shutdown();
 			System.out.println("Disposing Window");
 			dispose();
 			System.exit(0);

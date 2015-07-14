@@ -2,11 +2,6 @@ package bb.chat.server;
 
 import bb.chat.gui.ChatServerGUI;
 import bb.chat.gui.PortDialog;
-import bb.chat.network.ServerConnectionHandler;
-
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -64,6 +59,6 @@ class Main {
 		}
 
 		port = port > 65565 ? 65565 : port;
-		new ChatServerGUI(new ServerConnectionHandler(port,true));
+		new ChatServerGUI(port);
 	}
 }
