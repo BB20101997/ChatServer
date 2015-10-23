@@ -20,6 +20,7 @@ import java.util.List;
 public class ServerChat extends BasicChat {
 
 
+	//initialises super and sets server specific stuff
 	public ServerChat(final IConnectionManager imessagehandler, BasicPermissionRegistrie bpr, BasicUserDatabase bud, ICommandRegistry icr) {
 		super(imessagehandler, bpr, bud, icr);
 
@@ -35,11 +36,9 @@ public class ServerChat extends BasicChat {
 
 		imessagehandler.getPacketDistributor().registerPacketHandler(new DefaultPacketHandler(this));
 
-		final List<String> den = new ArrayList<>();
-		final List<String> perm = new ArrayList<>();
-		final List<String> group = new ArrayList<>();
 
-		perm.add("*");
+
+
 
 		localActor = new IChatActor() {
 
@@ -48,9 +47,15 @@ public class ServerChat extends BasicChat {
 			{
 				user = new BasicUser() {
 
+					final List<String> den = new ArrayList<>();
+					final List<String> perm = new ArrayList<>();
+					final List<String> group = new ArrayList<>();
+
+					{
+						perm.add("*");
+					}
 
 					@Override
-
 					public int getUserID() {
 						return -1;
 					}
