@@ -21,7 +21,7 @@ public class ServerChat extends BasicChat {
 
 
 	//initialises super and sets server specific stuff
-	public ServerChat(final IConnectionManager imessagehandler, BasicPermissionRegistrie bpr, BasicUserDatabase bud, ICommandRegistry icr) {
+	public ServerChat(final IConnectionManager imessagehandler,final BasicPermissionRegistrie bpr,final BasicUserDatabase bud,final ICommandRegistry icr) {
 		super(imessagehandler, bpr, bud, icr);
 
 		icr.addCommand(Help.class);
@@ -36,11 +36,7 @@ public class ServerChat extends BasicChat {
 
 		imessagehandler.getPacketDistributor().registerPacketHandler(new DefaultPacketHandler(this));
 
-
-
-
-
-		localActor = new IChatActor() {
+		LOCAL = new IChatActor() {
 
 			BasicUser user;
 
