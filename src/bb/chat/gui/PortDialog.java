@@ -1,10 +1,12 @@
 package bb.chat.gui;
 
+import bb.util.file.log.BBLogHandler;
+import bb.util.file.log.Constants;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.util.logging.Logger;
 
 @SuppressWarnings("serial")
 public class PortDialog extends JDialog implements ActionListener {
@@ -13,6 +15,15 @@ public class PortDialog extends JDialog implements ActionListener {
 	public boolean input_gotten = false;
 
 	private final JTextField InText = new JTextField("256");
+
+	@SuppressWarnings("ConstantNamingConvention")
+	private static final Logger log;
+
+	static {
+		log = Logger.getLogger(PortDialog.class.getName());
+		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
+	}
+
 
 	public PortDialog() {
 
@@ -24,37 +35,22 @@ public class PortDialog extends JDialog implements ActionListener {
 		box.add(OK);
 		OK.addActionListener(this);
 		add(box);
-		addWindowListener(new WinLis());
 		pack();
 
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-
+		log.fine("Got an Event");
 		try {
 			port = Integer.valueOf(InText.getText());
 			input_gotten = true;
 		} catch(IllegalArgumentException e) {
-			//TODO: Log
+			log.fine("IllegalArgumentException");
 			input_gotten = false;
 		}
 		setVisible(false);
 	}
 
-	private class WinLis extends WindowAdapter {
-		@Override
-		public void windowClosing(WindowEvent e) {
-
-			super.windowClosing(e);
-		}
-
-		@Override
-		public void windowClosed(WindowEvent arg0) {
-
-			super.windowClosed(arg0);
-
-		}
-	}
 
 }
