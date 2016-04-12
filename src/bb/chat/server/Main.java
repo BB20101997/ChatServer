@@ -3,10 +3,6 @@ package bb.chat.server;
 import bb.chat.gui.ChatServerGUI;
 import bb.chat.gui.PortDialog;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 /**
  * @author BB20101997
  */
@@ -17,23 +13,21 @@ class Main {
 	 */
 	public static void main(String[] tArgs) {
 
-		String date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
-		//noinspection StringConcatenationMissingWhitespace
-		File file = new File("Log" + File.pathSeparator + "Server" + File.pathSeparator + "log-" + date + ".fw").getAbsoluteFile();
-
-		boolean gui = !(((tArgs.length > 0) && tArgs[0].equals("nogui")) || ((tArgs.length > 1) && tArgs[1].equals("nogui")));
-
+		boolean gui = true;
 		int port = 256;
-		if(tArgs.length >= 1) {
-			try {
-				port = Integer.valueOf(tArgs[0]);
-				if(port > 65535) {
-					throw new NumberFormatException();
-				}
-			} catch(NumberFormatException e) {
-				if(!gui) {
-				}
+
+		//loop thought the Arguments
+		for(String s:tArgs){
+			if(s.equals("nogui")){
+				gui = false;
 			}
+			if(s.startsWith("port=")){
+				port = Integer.valueOf(s.replace("port=",""));
+			}
+		}
+
+		if(port > 65535) {
+			throw new IllegalArgumentException("The port has to be smaller than 65535 it was "+port+".");
 		}
 
 		if(gui) {
