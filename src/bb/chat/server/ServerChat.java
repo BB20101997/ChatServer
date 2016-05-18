@@ -10,19 +10,32 @@ import bb.chat.security.BasicUser;
 import bb.chat.security.BasicUserDatabase;
 import bb.net.interfaces.IConnectionManager;
 import bb.net.interfaces.IIOHandler;
+import bb.util.file.log.BBLogHandler;
+import bb.util.file.log.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created by BB20101997 on 04.04.2015.
  */
 public class ServerChat extends BasicChat {
 
+	private static final Logger log;
+
+	static {
+		log = Logger.getLogger(ServerChat.class.getName());
+		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
+	}
+
+
 
 	//initialises super and sets server specific stuff
 	public ServerChat(final IConnectionManager imessagehandler,final BasicPermissionRegistrie bpr,final BasicUserDatabase bud,final ICommandRegistry icr) {
 		super(imessagehandler, bpr, bud, icr);
+
+		log.entering(this.getClass().getName(),"Constructor");
 
 		icr.addCommand(Help.class);
 		icr.addCommand(bb.chat.command.List.class);
@@ -34,6 +47,7 @@ public class ServerChat extends BasicChat {
 		icr.addCommand(Save.class);
 		icr.addCommand(Permission.class);
 
+		log.finest("Registering DefaultPacketHandler");
 		imessagehandler.getPacketDistributor().registerPacketHandler(new DefaultPacketHandler(this));
 
 		LOCAL = new IChatActor() {
@@ -94,7 +108,7 @@ public class ServerChat extends BasicChat {
 			}
 
 			@Override
-			public boolean setActorName(String name) {
+			public boolean setActorName(String name,boolean n) {
 				return true;
 			}
 

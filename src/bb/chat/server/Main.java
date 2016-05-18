@@ -3,6 +3,9 @@ package bb.chat.server;
 import bb.chat.gui.ChatServerGUI;
 import bb.chat.gui.PortDialog;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * @author BB20101997
  */
@@ -12,6 +15,8 @@ class Main {
 	 * @param tArgs just the usual tArgs to startup a java Program
 	 */
 	public static void main(String[] tArgs) {
+
+		Logger.getLogger("").setLevel(Level.ALL);
 
 		boolean gui = true;
 		int port = 256;

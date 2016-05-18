@@ -27,6 +27,8 @@ public class PortDialog extends JDialog implements ActionListener {
 
 	public PortDialog() {
 
+		log.entering(this.getClass().getName(),"Constructor");
+
 		Box box = new Box(BoxLayout.Y_AXIS);
 		JLabel lab = new JLabel("Enter a port "+ System.lineSeparator()+" or hit OK for the standard port 256!");
 		JButton OK = new JButton("OK");
@@ -42,6 +44,7 @@ public class PortDialog extends JDialog implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		log.fine("Got an Event");
+
 		try {
 			port = Integer.valueOf(InText.getText());
 			input_gotten = true;
@@ -49,6 +52,8 @@ public class PortDialog extends JDialog implements ActionListener {
 			log.fine("IllegalArgumentException");
 			input_gotten = false;
 		}
+
+		log.finer("Port set to "+port+"!");
 		setVisible(false);
 	}
 
