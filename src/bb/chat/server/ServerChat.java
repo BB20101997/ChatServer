@@ -22,6 +22,7 @@ import java.util.logging.Logger;
  */
 public class ServerChat extends BasicChat {
 
+	@SuppressWarnings("ConstantNamingConvention")
 	private static final Logger log;
 
 	static {
@@ -46,6 +47,7 @@ public class ServerChat extends BasicChat {
 		icr.addCommand(Stop.class);
 		icr.addCommand(Save.class);
 		icr.addCommand(Permission.class);
+		icr.addCommand(Debug.class);
 
 		log.finest("Registering DefaultPacketHandler");
 		imessagehandler.getPacketDistributor().registerPacketHandler(new DefaultPacketHandler(this));
@@ -108,7 +110,7 @@ public class ServerChat extends BasicChat {
 			}
 
 			@Override
-			public boolean setActorName(String name,boolean n) {
+			public boolean setActorName(String name,boolean notify) {
 				return true;
 			}
 

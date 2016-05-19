@@ -43,7 +43,7 @@ public class PortDialog extends JDialog implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		log.fine("Got an Event");
+		log.fine("Got an ActionEvent");
 
 		try {
 			port = Integer.valueOf(InText.getText());
