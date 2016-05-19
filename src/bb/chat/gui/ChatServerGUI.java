@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  */
 public class ChatServerGUI extends JFrame {
 
-	final BasicChat bc;
+	private final BasicChat bc;
 
 	@SuppressWarnings("ConstantNamingConvention")
 	private static final Logger log;

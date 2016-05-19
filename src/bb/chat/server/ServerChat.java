@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 /**
  * Created by BB20101997 on 04.04.2015.
  */
+@SuppressWarnings("ClassNamePrefixedWithPackageName")
 public class ServerChat extends BasicChat {
 
 	@SuppressWarnings("ConstantNamingConvention")
@@ -52,11 +53,13 @@ public class ServerChat extends BasicChat {
 		log.finest("Registering DefaultPacketHandler");
 		imessagehandler.getPacketDistributor().registerPacketHandler(new DefaultPacketHandler(this));
 
+		//noinspection PublicMethodWithoutLogging
 		LOCAL = new IChatActor() {
 
 			BasicUser user;
 
 			{
+				//noinspection PublicMethodWithoutLogging
 				user = new BasicUser() {
 
 					final List<String> den = new ArrayList<>();
@@ -121,7 +124,6 @@ public class ServerChat extends BasicChat {
 
 			@Override
 			public void setUser(BasicUser u) {
-
 			}
 
 			@Override
