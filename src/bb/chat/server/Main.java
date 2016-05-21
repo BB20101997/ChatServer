@@ -87,7 +87,7 @@ class Main {
 
 			ServerChat bc = new ServerChat(new BasicConnectionManager(Side.SERVER, port), new BasicPermissionRegistrie(), new BasicUserDatabase(), new BasicCommandRegistry());
 
-			@SuppressWarnings("PublicMethodWithoutLogging")
+			//noinspection PublicMethodWithoutLogging
 			IBasicChatPanel BCP = new IBasicChatPanel() {
 				@SuppressWarnings("UseOfSystemOutOrSystemErr")
 				@Override
