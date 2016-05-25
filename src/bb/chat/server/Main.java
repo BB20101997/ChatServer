@@ -1,13 +1,8 @@
 package bb.chat.server;
 
-import bb.chat.command.BasicCommandRegistry;
 import bb.chat.gui.ChatServerGUI;
 import bb.chat.gui.PortDialog;
 import bb.chat.interfaces.IBasicChatPanel;
-import bb.chat.security.BasicPermissionRegistrie;
-import bb.chat.security.BasicUserDatabase;
-import bb.net.enums.Side;
-import bb.net.handler.BasicConnectionManager;
 import bb.util.file.log.BBLogHandler;
 import bb.util.file.log.Constants;
 
@@ -85,7 +80,7 @@ class Main {
 			new ChatServerGUI(port);
 		} else {
 
-			ServerChat bc = new ServerChat(new BasicConnectionManager(Side.SERVER, port), new BasicPermissionRegistrie(), new BasicUserDatabase(), new BasicCommandRegistry());
+			ServerChat bc = new ServerChat(port);
 
 			//noinspection PublicMethodWithoutLogging
 			IBasicChatPanel BCP = new IBasicChatPanel() {

@@ -8,6 +8,7 @@ import bb.chat.network.handler.DefaultPacketHandler;
 import bb.chat.security.BasicPermissionRegistrie;
 import bb.chat.security.BasicUser;
 import bb.chat.security.BasicUserDatabase;
+import bb.net.handler.BasicConnectionManager;
 import bb.net.interfaces.IConnectionManager;
 import bb.net.interfaces.IIOHandler;
 import bb.util.file.log.BBLogHandler;
@@ -32,6 +33,9 @@ public class ServerChat extends BasicChat {
 	}
 
 
+	public ServerChat(int port){
+		this(new BasicConnectionManager(port), new BasicPermissionRegistrie(), new BasicUserDatabase(), new BasicCommandRegistry());
+	}
 
 	//initialises super and sets server specific stuff
 	public ServerChat(final IConnectionManager imessagehandler,final BasicPermissionRegistrie bpr,final BasicUserDatabase bud,final ICommandRegistry icr) {
