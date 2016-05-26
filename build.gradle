@@ -1,5 +1,24 @@
-apply plugin: java
+group 'io.github.bb20101997'
+version '0.0.2'
+
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.8
 
 repositories {
+    mavenLocal()
     mavenCentral()
+}
+
+dependencies {
+    compile project(':chatbasis')
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+def lib = file('build/libs/' + findProject(':chatserver').name + "-" + version + ".jar")
+
+artifacts {
+    archives lib
 }
