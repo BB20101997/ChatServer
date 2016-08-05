@@ -17,7 +17,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
-def lib = file('build/libs/' + findProject(':chatserver').name + "-" + version + ".jar")
+def lib = file('build/libs/' + name + "-" + version + ".jar")
 
 artifacts {
     archives lib
