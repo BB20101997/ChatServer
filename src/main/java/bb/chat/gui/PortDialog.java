@@ -21,9 +21,9 @@ public class PortDialog extends JDialog implements ActionListener {
 
 	static {
 		log = Logger.getLogger(PortDialog.class.getName());
+		//noinspection DuplicateStringLiteralInspection
 		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
 	}
-
 
 	public PortDialog() {
 
@@ -56,6 +56,4 @@ public class PortDialog extends JDialog implements ActionListener {
 		log.finer("Port set to "+port+"!");
 		setVisible(false);
 	}
-
-
 }

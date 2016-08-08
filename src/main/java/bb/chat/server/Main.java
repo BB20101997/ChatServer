@@ -22,9 +22,9 @@ class Main {
 
 	static {
 		log = Logger.getLogger(Main.class.getName());
+		//noinspection DuplicateStringLiteralInspection
 		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
 	}
-
 
 	/**
 	 * @param tArgs just the usual tArgs to startup a java Program

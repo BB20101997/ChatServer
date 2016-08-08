@@ -27,6 +27,7 @@ public class ChatServerGUI extends JFrame {
 
 	static {
 		log = Logger.getLogger(ChatServerGUI.class.getName());
+		//noinspection DuplicateStringLiteralInspection
 		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
 	}
 	

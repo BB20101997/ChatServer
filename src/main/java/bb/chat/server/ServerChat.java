@@ -29,6 +29,7 @@ public class ServerChat extends BasicChat {
 
 	static {
 		log = Logger.getLogger(ServerChat.class.getName());
+		//noinspection DuplicateStringLiteralInspection
 		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
 	}
 
@@ -113,7 +114,7 @@ public class ServerChat extends BasicChat {
 
 			@Override
 			public String getActorName() {
-				return "SERVER";
+				return user.getUserName();
 			}
 
 			@Override
