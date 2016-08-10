@@ -44,16 +44,7 @@ public class ServerChat extends BasicChat {
 
 		log.entering(this.getClass().getName(),"Constructor");
 
-		icr.addCommand(Help.class);
-		icr.addCommand(bb.chat.command.List.class);
-		icr.addCommand(Register.class);
-		icr.addCommand(Rename.class);
-		icr.addCommand(Whisper.class);
-		icr.addCommand(Disconnect.class);
-		icr.addCommand(Stop.class);
-		icr.addCommand(Save.class);
-		icr.addCommand(Permission.class);
-		icr.addCommand(Debug.class);
+		addDefaultCommandsServer();
 
 		log.finest("Registering DefaultPacketHandler");
 		imessagehandler.getPacketDistributor().registerPacketHandler(new DefaultPacketHandler(this));
@@ -128,7 +119,7 @@ public class ServerChat extends BasicChat {
 			}
 
 			@Override
-			public void setUser(BasicUser u) {
+			public void setUser(BasicUser basicUser) {
 			}
 
 			@Override
