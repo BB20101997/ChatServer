@@ -31,29 +31,34 @@ public class PortDialog extends JDialog implements ActionListener {
 
 		Box box = new Box(BoxLayout.Y_AXIS);
 		JLabel lab = new JLabel("Enter a port "+ System.lineSeparator()+" or hit OK for the standard port 256!");
-		JButton OK = new JButton("OK");
+		JButton ok = new JButton("OK");
 		box.add(lab);
 		box.add(InText);
-		box.add(OK);
-		OK.addActionListener(this);
+		box.add(ok);
+		ok.addActionListener(this);
 		add(box);
 		pack();
 
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0) {
+	public void actionPerformed(ActionEvent e) {
 		log.fine("Got an ActionEvent");
 
 		try {
 			port = Integer.valueOf(InText.getText());
+			if(port>65535){
+				return;
+			}
 			input_gotten = true;
-		} catch(IllegalArgumentException e) {
+			setVisible(false);
+			log.finer("Port set to " + port + "!");
+		} catch(IllegalArgumentException ex) {
 			log.fine("IllegalArgumentException");
 			input_gotten = false;
 		}
 
-		log.finer("Port set to "+port+"!");
-		setVisible(false);
+
+
 	}
 }
