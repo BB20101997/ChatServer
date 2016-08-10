@@ -46,7 +46,8 @@ public class ChatServerGUI extends JFrame {
 
 		super("Server GUI");
 		bc = new ServerChat(new BasicConnectionManager(port), new BasicPermissionRegistrie(), new BasicUserDatabase(), new BasicCommandRegistry());
-		BasicChatPanel BCP = new BasicChatPanel(bc);
+		//noinspection LocalVariableNamingConvention
+		final BasicChatPanel BCP = new BasicChatPanel(bc);
 		bc.setBasicChatPanel(BCP);
 		addWindowListener(new WindowListen());
 		add(BCP);
