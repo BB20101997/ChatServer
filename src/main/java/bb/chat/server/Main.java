@@ -19,6 +19,9 @@ class Main {
 
 	@SuppressWarnings("ConstantNamingConvention")
 	private static final Logger log;
+	private static int     port         = 256;
+	private static boolean portProvided = false;
+	private static boolean gui          = true;
 
 	static {
 		log = Logger.getLogger(Main.class.getName());
@@ -33,9 +36,6 @@ class Main {
 
 		Logger.getLogger("").setLevel(Level.ALL);
 		log.fine("Starting...");
-		boolean gui = true;
-		int port = 256;
-		boolean portProvided = false;
 
 		//loop thought the Arguments
 		for(String s : tArgs) {
@@ -52,72 +52,89 @@ class Main {
 			throw new IllegalArgumentException("The port has to be smaller than 65535 it was " + port + ".");
 		}
 
-		if(!portProvided) {
-			if(gui) {
-				PortDialog p = new PortDialog();
-				p.setVisible(true);
-				while(p.isVisible()) {
-					try {
-						Thread.sleep(5);
-					} catch(InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-				if(p.input_gotten) {
-					port = p.port;
-				} else {
-					System.exit(0);
-				}
-			} else {
-				if(System.console() != null) {
-					port = Integer.valueOf(System.console().readLine());
-				}
-			}
-		}
-
-		port = port > 65565 ? 65565 : port;
 		if(gui) {
-			new ChatServerGUI(port);
+			guiMode();
 		} else {
-
-			ServerChat bc = new ServerChat(port);
-
-			//noinspection PublicMethodWithoutLogging
-			IBasicChatPanel BCP = new IBasicChatPanel() {
-				@SuppressWarnings("UseOfSystemOutOrSystemErr")
-				@Override
-				public void WipeLog() {
-					System.out.flush();
-				}
-
-				@SuppressWarnings("UseOfSystemOutOrSystemErr")
-				@Override
-				public void print(String s) {
-					System.out.print(s);
-				}
-
-				@Override
-				public void stop() {
-					keepGoing = false;
-				}
-			};
-
-			bc.setBasicChatPanel(BCP);
-			boolean consolePresent = System.console() != null;
-			if(!consolePresent) {
-				log.fine("No Console found,using Scanner!");
-			}
-			while(keepGoing) {
-				if(consolePresent) {
-					String s = System.console().readLine();
-					bc.Message(s);
-				} else {
-					Scanner in = new Scanner(System.in);
-					String s = in.nextLine();
-					bc.Message(s);
-				}
-			}
-			System.exit(0);
+			noGuiMode();
 		}
+	}
+
+	public static void guiMode() {
+		if(!portProvided) {
+			PortDialog p = new PortDialog();
+			p.setVisible(true);
+			while(p.isVisible()) {
+				try {
+					Thread.sleep(5);
+				} catch(InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			if(p.input_gotten) {
+				port = p.port;
+			} else {
+				System.exit(0);
+			}
+		}
+
+		new ChatServerGUI(port);
+	}
+
+	public static void noGuiMode() {
+		if(!portProvided) {
+			if(System.console() == null) {
+				do {
+					//noinspection UseOfSystemOutOrSystemErr
+					System.out.println("Please provide a Port(Range:1-65535)");
+					port = new Scanner(System.in).nextInt();
+				} while(port > 65535);
+			} else {
+				do {
+					//noinspection UseOfSystemOutOrSystemErr
+					System.out.println("Please provide a Port(Range:1-65535)");
+					port = Integer.valueOf(System.console().readLine());
+				} while(port > 65535);
+			}
+		}
+
+		ServerChat bc = new ServerChat(port);
+
+		//noinspection PublicMethodWithoutLogging,LocalVariableNamingConvention
+		final IBasicChatPanel BCP = new IBasicChatPanel() {
+			@SuppressWarnings("UseOfSystemOutOrSystemErr")
+			@Override
+			public void wipeLog() {
+				System.out.flush();
+			}
+
+			@SuppressWarnings("UseOfSystemOutOrSystemErr")
+			@Override
+			public void print(String s) {
+				System.out.print(s);
+			}
+
+			@Override
+			public void stop() {
+				keepGoing = false;
+			}
+		};
+		bc.setBasicChatPanel(BCP);
+
+		String s;
+		if(System.console() != null) {
+			log.fine("Console found, using Console");
+			while(keepGoing) {
+				s = System.console().readLine();
+				bc.message(s);
+			}
+		} else {
+			log.fine("No Console found,using Scanner!");
+			Scanner in = new Scanner(System.in);
+			while(keepGoing) {
+				s = in.nextLine();
+				bc.message(s);
+			}
+		}
+		System.exit(0);
 	}
 }
