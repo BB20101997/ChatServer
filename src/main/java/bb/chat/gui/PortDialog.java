@@ -1,7 +1,6 @@
 package bb.chat.gui;
 
-import bb.util.file.log.BBLogHandler;
-import bb.util.file.log.Constants;
+import bb.chat.server.ServerConstants;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -17,13 +16,7 @@ public class PortDialog extends JDialog implements ActionListener {
 	private final JTextField InText = new JTextField("256");
 
 	@SuppressWarnings("ConstantNamingConvention")
-	private static final Logger log;
-
-	static {
-		log = Logger.getLogger(PortDialog.class.getName());
-		//noinspection DuplicateStringLiteralInspection
-		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
-	}
+	private static final Logger log = ServerConstants.getLogger(JDialog.class);
 
 	public PortDialog() {
 

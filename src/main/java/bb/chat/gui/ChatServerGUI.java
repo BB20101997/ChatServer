@@ -2,15 +2,14 @@ package bb.chat.gui;
 
 import bb.chat.chat.BasicChat;
 import bb.chat.command.BasicCommandRegistry;
+import bb.chat.enums.Bundles;
 import bb.chat.security.BasicPermissionRegistrie;
 import bb.chat.security.BasicUserDatabase;
 import bb.chat.server.ServerChat;
+import bb.chat.server.ServerConstants;
 import bb.net.handler.BasicConnectionManager;
-import bb.util.file.log.BBLogHandler;
-import bb.util.file.log.Constants;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.logging.Logger;
@@ -23,36 +22,37 @@ public class ChatServerGUI extends JFrame {
 	private final BasicChat bc;
 
 	@SuppressWarnings("ConstantNamingConvention")
-	private static final Logger log;
+	private static final Logger logger = ServerConstants.getLogger(ChatServerGUI.class);
 
-	static {
-		log = Logger.getLogger(ChatServerGUI.class.getName());
-		//noinspection DuplicateStringLiteralInspection
-		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
-	}
-	
+	/**
+	 * Handling the shutdown on closing the window
+	 * */
 	private class WindowListen extends WindowAdapter {
 		@Override
 		public void windowClosing(WindowEvent e) {
 			super.windowClosing(e);
 			bc.shutdown();
-			log.fine("Disposing Window");
+			logger.fine(Bundles.LOG_TEXT.getString("log.window.dispose"));
 			dispose();
 			System.exit(0);
 		}
 	}
 
+	/**
+	 * @param port the port the Server shall listen on
+	 * */
 	public ChatServerGUI(int port) {
 
-		super("Server GUI");
+		super(Bundles.BUTTON_LABEL.getString("title.server"));
 		bc = new ServerChat(new BasicConnectionManager(port), new BasicPermissionRegistrie(), new BasicUserDatabase(), new BasicCommandRegistry());
-		//noinspection LocalVariableNamingConvention
-		final BasicChatPanel BCP = new BasicChatPanel(bc);
-		bc.setBasicChatPanel(BCP);
-		addWindowListener(new WindowListen());
-		add(BCP);
 
-		setMinimumSize(new Dimension(500, 250));
+		final BasicChatPanel bcp = new BasicChatPanel(bc);
+		bc.setBasicChatPanel(bcp);
+
+		addWindowListener(new WindowListen());
+		add(bcp);
+
+		setMinimumSize(ServerConstants.MIN_SIZE);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		pack();

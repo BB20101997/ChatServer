@@ -1,7 +1,8 @@
 package bb.chat.server;
 
+import bb.chat.basis.BasisConstants;
 import bb.chat.chat.BasicChat;
-import bb.chat.command.*;
+import bb.chat.command.BasicCommandRegistry;
 import bb.chat.interfaces.IChatActor;
 import bb.chat.interfaces.ICommandRegistry;
 import bb.chat.network.handler.DefaultPacketHandler;
@@ -11,8 +12,6 @@ import bb.chat.security.BasicUserDatabase;
 import bb.net.handler.BasicConnectionManager;
 import bb.net.interfaces.IConnectionManager;
 import bb.net.interfaces.IIOHandler;
-import bb.util.file.log.BBLogHandler;
-import bb.util.file.log.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,14 +24,7 @@ import java.util.logging.Logger;
 public class ServerChat extends BasicChat {
 
 	@SuppressWarnings("ConstantNamingConvention")
-	private static final Logger log;
-
-	static {
-		log = Logger.getLogger(ServerChat.class.getName());
-		//noinspection DuplicateStringLiteralInspection
-		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
-	}
-
+	private static final Logger log  = ServerConstants.getLogger(ServerChat.class);
 
 	public ServerChat(int port){
 		this(new BasicConnectionManager(port), new BasicPermissionRegistrie(), new BasicUserDatabase(), new BasicCommandRegistry());
@@ -73,7 +65,7 @@ public class ServerChat extends BasicChat {
 
 					@Override
 					public String getUserName() {
-						return "SERVER";
+						return BasisConstants.SERVER_UP;
 					}
 
 					@Override

@@ -1,10 +1,9 @@
 package bb.chat.server;
 
+import bb.chat.enums.Bundles;
 import bb.chat.gui.ChatServerGUI;
 import bb.chat.gui.PortDialog;
 import bb.chat.interfaces.IBasicChatPanel;
-import bb.util.file.log.BBLogHandler;
-import bb.util.file.log.Constants;
 
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -18,16 +17,10 @@ class Main {
 	static volatile boolean keepGoing = true;
 
 	@SuppressWarnings("ConstantNamingConvention")
-	private static final Logger log;
-	private static int     port         = 256;
-	private static boolean portProvided = false;
-	private static boolean gui          = true;
-
-	static {
-		log = Logger.getLogger(Main.class.getName());
-		//noinspection DuplicateStringLiteralInspection
-		log.addHandler(new BBLogHandler(Constants.getLogFile("ChatServer")));
-	}
+	private static final Logger logger       = ServerConstants.getLogger(Main.class);
+	private static int          port         = 256;
+	private static boolean      portProvided = false;
+	private static boolean      gui          = true;
 
 	/**
 	 * @param tArgs just the usual tArgs to startup a java Program
@@ -35,14 +28,17 @@ class Main {
 	public static void main(String[] tArgs) {
 
 		Logger.getLogger("").setLevel(Level.ALL);
-		log.fine("Starting...");
+		logger.fine(Bundles.LOG_TEXT.getString("log.start.starting"));
 
 		//loop thought the Arguments
 		for(String s : tArgs) {
+			//noinspection HardCodedStringLiteral
 			if(s.equals("nogui")) {
 				gui = false;
 			}
+			//noinspection HardCodedStringLiteral
 			if(s.startsWith("port=")) {
+				//noinspection HardCodedStringLiteral
 				port = Integer.valueOf(s.replace("port=", ""));
 				portProvided = true;
 			}
@@ -60,6 +56,7 @@ class Main {
 	}
 
 	public static void guiMode() {
+		logger.info("Starting Server in GUI mode!");
 		if(!portProvided) {
 			PortDialog p = new PortDialog();
 			p.setVisible(true);
@@ -73,6 +70,7 @@ class Main {
 			if(p.input_gotten) {
 				port = p.port;
 			} else {
+				logger.info("Aborting Server Startup!"+System.lineSeparator()+"Getting Port failed!");
 				System.exit(0);
 			}
 		}
@@ -81,6 +79,7 @@ class Main {
 	}
 
 	public static void noGuiMode() {
+		logger.info("Starting Server in nogui mode!");
 		if(!portProvided) {
 			if(System.console() == null) {
 				do {
@@ -122,13 +121,13 @@ class Main {
 
 		String s;
 		if(System.console() != null) {
-			log.fine("Console found, using Console");
+			logger.fine("Console found, using Console");
 			while(keepGoing) {
 				s = System.console().readLine();
 				bc.message(s);
 			}
 		} else {
-			log.fine("No Console found,using Scanner!");
+			logger.fine("No Console found,using Scanner!");
 			Scanner in = new Scanner(System.in);
 			while(keepGoing) {
 				s = in.nextLine();
