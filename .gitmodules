@@ -1,0 +1,3 @@
+[submodule "ChatBasis"]
+	path = ChatBasis
+	url = https://github.com/BB20101997/ChatBasis.git
