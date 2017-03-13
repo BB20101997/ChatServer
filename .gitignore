@@ -4,3 +4,6 @@
 /.idea/
 /*.iml
 /build/
+/.gradle/
+/logs/
+*.fw

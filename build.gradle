@@ -4,18 +4,19 @@ version '0.0.4'
 apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'application'
 
 //noinspection GroovyUnusedAssignment
 sourceCompatibility = 1.8
 
+mainClassName = "bb.chat.server.Main"
+
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
-    //0.1.0 would mean it breaks backwards compatibility witch may cause problems
-    compile group: 'io.github.bb20101997', name: 'chatbasis', version: '[0.0.5,0.1.0['
+    compile project("ChatBasis")
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
