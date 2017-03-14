@@ -1,0 +1,11 @@
+language: java
+jdk:
+- oraclejdk8
+install:
+- gradle assemble
+script:
+- gradle check
+- gradle jar
+before_deploy:
+  - gradle compJar
+  - gradle srcJar
